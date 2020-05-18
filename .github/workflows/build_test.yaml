@@ -29,7 +29,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        go-version: [1.13.x, 1.14.x]
+        go-version: [1.14.x]
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -42,18 +42,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up packages for checking coverage
-        run: |
-          go get -v github.com/modocache/gover
-          go get -v github.com/mattn/goveralls
-
       - name: Run tests
         run: go test -v -coverprofile=.coverprofile ./...
 
-      - name: Collect coverprofiles
-        run: gover
-
-      - name: Upload coverprofile to coveralls.io
+      - name: Send coverage to coveralls.io
+        uses: shogo82148/actions-goveralls@v1
         env:
-          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-        run: goveralls -v -coverprofile=gover.coverprofile -service=github
+          COVERALLS_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        with:
+          path-to-profile: .coverprofile
