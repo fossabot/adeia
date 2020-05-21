@@ -7,27 +7,42 @@ import (
 	"testing"
 )
 
-const testValidConfPath = "/tmp/adeia-test-valid-config"
-const testInvalidConfPath = "/tmp/adeia-test-invalid-config"
+func setupTestConf(content, pattern string) (*os.File, error) {
+	f, err := ioutil.TempFile("", pattern)
+	if err != nil {
+		return nil, err
+	}
 
-func setupTestConf() {
+	_, err = f.Write([]byte(content))
+	if err != nil {
+		return nil, err
+	}
+
+	return f, nil
+}
+
+func TestLoad(t *testing.T) {
 	validConf := `
 server:
   host: "test"
   port: 1234
 `
+	validConfFile, err := setupTestConf(validConf, "adeia-valid-config")
+	if err != nil {
+		t.Errorf("error setting up test config file")
+	}
+
 	invalidConf := `
 @
 `
-	_ = ioutil.WriteFile(testValidConfPath, []byte(validConf), 0644)
-	_ = ioutil.WriteFile(testInvalidConfPath, []byte(invalidConf), 0644)
-}
+	invalidConfFile, err := setupTestConf(invalidConf, "adeia-invalid-config")
+	if err != nil {
+		t.Errorf("error setting up test config file")
+	}
 
-func TestLoad(t *testing.T) {
-	setupTestConf()
 	defer func() {
-		_ = os.Remove(testValidConfPath)
-		_ = os.Remove(testInvalidConfPath)
+		_ = os.Remove(validConfFile.Name())
+		_ = os.Remove(invalidConfFile.Name())
 	}()
 
 	t.Run("should load without any errors", func(t *testing.T) {
@@ -35,7 +50,7 @@ func TestLoad(t *testing.T) {
 		want.Server.Port = "1234"
 		want.Server.Host = "test"
 
-		got, err := Load(testValidConfPath)
+		got, err := Load(validConfFile.Name())
 
 		if err != nil {
 			t.Errorf("should not return error. %q", err)
@@ -55,7 +70,7 @@ func TestLoad(t *testing.T) {
 	})
 
 	t.Run("should return error when yaml is invalid", func(t *testing.T) {
-		_, err := Load(testInvalidConfPath)
+		_, err := Load(invalidConfFile.Name())
 
 		if err == nil {
 			t.Error("should return error when yaml is invalid")
