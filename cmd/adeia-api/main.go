@@ -1,11 +1,18 @@
 package main
 
-import "fmt"
-
-func Hello() string {
-	return "Hello, world\n"
-}
+import (
+	"adeia-api/internal/server"
+	"fmt"
+	"os"
+)
 
 func main() {
-	fmt.Printf(Hello())
+	apiServer := server.NewAPIServer()
+
+	apiServer.AddRoutes()
+
+	if err := apiServer.Serve(); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "%q\n", err)
+		os.Exit(1)
+	}
 }
