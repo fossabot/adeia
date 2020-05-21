@@ -1,18 +1,20 @@
 package main
 
 import (
+	"adeia-api/internal/config"
 	"adeia-api/internal/server"
-	"fmt"
-	"os"
+	"log"
 )
 
 func main() {
-	apiServer := server.NewAPIServer()
+	conf, err := config.Load("./config/config.yaml")
+	if err != nil {
+		log.Panicf("cannot load config: %v", err)
+	}
 
+	apiServer := server.NewAPIServer(conf)
 	apiServer.AddRoutes()
-
 	if err := apiServer.Serve(); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "%q\n", err)
-		os.Exit(1)
+		log.Panicf("error while serving: %v", err)
 	}
 }

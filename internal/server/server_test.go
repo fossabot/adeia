@@ -1,6 +1,7 @@
 package server
 
 import (
+	"adeia-api/internal/config"
 	"reflect"
 	"testing"
 
@@ -8,9 +9,9 @@ import (
 )
 
 func TestNewAPIServer(t *testing.T) {
-	want := &APIServer{httprouter.New()}
+	want := &APIServer{Srv: httprouter.New(), Config: &config.Config{}}
 
-	got := NewAPIServer()
+	got := NewAPIServer(&config.Config{})
 
 	if !reflect.DeepEqual(got, want) {
 		t.Error("should return new APIServer")
