@@ -25,11 +25,13 @@ func main() {
 	if err != nil {
 		onError("cannot initialize logger", err)
 	}
-	defer logger.Sync()
+
+	log := logger.Get()
+	defer log.Sync()
 
 	apiServer := server.NewAPIServer(conf)
 	apiServer.AddRoutes()
 	if err := apiServer.Serve(); err != nil {
-		logger.Panicf("error while serving: %v", err)
+		log.Panicf("error while serving: %v", err)
 	}
 }

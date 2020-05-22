@@ -18,6 +18,7 @@ func TestMain(m *testing.M) {
 
 func initLogger() {
 	_ = logger.Init(&config.LoggerConfig{Level: "debug"})
+	log = logger.Get()
 }
 
 func TestNewAPIServer(t *testing.T) {
