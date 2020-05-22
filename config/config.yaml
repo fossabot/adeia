@@ -1,3 +1,6 @@
 server:
-  host: ""
+  host: "" # empty string to listen on all interfaces
   port: 5000
+
+logger:
+  level: debug
