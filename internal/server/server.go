@@ -12,14 +12,13 @@ import (
 // APIServer is the struct that holds all of the components that need to be
 // injected.
 type APIServer struct {
-	Srv    *httprouter.Router
-	Config *config.Config
+	Srv *httprouter.Router
 }
 
 // NewAPIServer returns a new APIServer with the passed-in config.
-func NewAPIServer(c *config.Config) *APIServer {
+func NewAPIServer() *APIServer {
 	log.Debug("initializing new APIServer")
-	return &APIServer{Srv: httprouter.New(), Config: c}
+	return &APIServer{Srv: httprouter.New()}
 }
 
 // AddRoutes registers the handles to the router.
@@ -31,7 +30,7 @@ func (a *APIServer) AddRoutes() {
 
 // Serve starts the server on the host and port, specified in the config.
 func (a *APIServer) Serve() error {
-	addr := a.Config.Server.Host + ":" + a.Config.Server.Port
+	addr := config.Get().Server.Host + ":" + config.Get().Server.Port
 	log.Infof("starting server on %q", addr)
 	return http.ListenAndServe(addr, a.Srv)
 }

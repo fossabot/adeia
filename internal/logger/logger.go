@@ -37,15 +37,15 @@ func init() {
 	initLog = new(sync.Once)
 }
 
-// InitLogger initializes a new logger instance based on passed-in config.
-func InitLogger(conf *config.LoggerConfig) error {
+// InitLogger initializes a new logger instance based on config.
+func InitLogger() error {
 	err := errors.New("logger already initialized")
 
 	initLog.Do(func() {
 		err = nil
 
 		// parse log level
-		level, e := parseLevel(conf.Level)
+		level, e := parseLevel(config.Get().Logger.Level)
 		if e != nil {
 			err = e
 			return

@@ -15,13 +15,13 @@ func onError(msg string, err error) {
 
 func main() {
 	// load config
-	conf, err := config.Load("./config/config.yaml")
+	err := config.LoadConf()
 	if err != nil {
 		onError("cannot load config", err)
 	}
 
 	// init logger
-	err = log.InitLogger(&conf.Logger)
+	err = log.InitLogger()
 	if err != nil {
 		onError("cannot initialize logger", err)
 	}
@@ -30,7 +30,7 @@ func main() {
 		_ = log.Sync()
 	}()
 
-	apiServer := server.NewAPIServer(conf)
+	apiServer := server.NewAPIServer()
 	apiServer.AddRoutes()
 	if err := apiServer.Serve(); err != nil {
 		log.Panicf("error while serving: %v", err)

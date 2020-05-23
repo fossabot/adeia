@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -43,6 +44,7 @@ server:
 	defer func() {
 		_ = os.Remove(validConfFile.Name())
 		_ = os.Remove(invalidConfFile.Name())
+		_ = os.Unsetenv("ADEIA_CONF_PATH")
 	}()
 
 	t.Run("should load without any errors", func(t *testing.T) {
@@ -50,7 +52,9 @@ server:
 		want.Server.Port = "1234"
 		want.Server.Host = "test"
 
-		got, err := Load(validConfFile.Name())
+		_ = os.Setenv("ADEIA_CONF_PATH", validConfFile.Name())
+		err := LoadConf()
+		got := Get()
 
 		if err != nil {
 			t.Errorf("should not return error. %q", err)
@@ -61,19 +65,47 @@ server:
 		}
 	})
 
+	initConf = new(sync.Once)
+
 	t.Run("should return error when file is nonexistent", func(t *testing.T) {
-		_, err := Load("/tmp/foo")
+		_ = os.Setenv("ADEIA_CONF_PATH", "/tmp/foo")
+		err := LoadConf()
 
 		if err == nil {
 			t.Error("should return error when file does not exist")
 		}
 	})
 
+	initConf = new(sync.Once)
+
 	t.Run("should return error when yaml is invalid", func(t *testing.T) {
-		_, err := Load(invalidConfFile.Name())
+		_ = os.Setenv("ADEIA_CONF_PATH", invalidConfFile.Name())
+		err := LoadConf()
 
 		if err == nil {
 			t.Error("should return error when yaml is invalid")
+		}
+	})
+}
+
+func TestGetEnv(t *testing.T) {
+	t.Run("should return value from env if key is set", func(t *testing.T) {
+		_ = os.Setenv("DUMMY_KEY", "foo")
+		want := "foo"
+
+		got := getEnv("DUMMY_KEY", "bar")
+		if got != want {
+			t.Errorf("got %q, want %q", got, want)
+		}
+	})
+
+	_ = os.Unsetenv("DUMMY_KEY")
+
+	t.Run("should return fallback if key is not set", func(t *testing.T) {
+		want := "bar"
+		got := getEnv("DUMMY_KEY", "bar")
+		if got != want {
+			t.Errorf("got %q, want %q", got, want)
 		}
 	})
 }

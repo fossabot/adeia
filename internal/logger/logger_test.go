@@ -31,9 +31,11 @@ func TestParseLevel(t *testing.T) {
 
 func TestInit(t *testing.T) {
 	t.Run("should not return any error when config is valid", func(t *testing.T) {
-		conf := &config.LoggerConfig{Level: "debug"}
+		config.Set(&config.Config{
+			Logger: config.LoggerConfig{Level: "debug"},
+		})
 
-		err := InitLogger(conf)
+		err := InitLogger()
 		if err != nil {
 			t.Errorf("should not return any error when config is valid: %v", err)
 		}
@@ -43,9 +45,11 @@ func TestInit(t *testing.T) {
 	initLog = new(sync.Once)
 
 	t.Run("should return error when config is invalid", func(t *testing.T) {
-		conf := &config.LoggerConfig{Level: "debug123"}
+		config.Set(&config.Config{
+			Logger: config.LoggerConfig{Level: "debug123"},
+		})
 
-		err := InitLogger(conf)
+		err := InitLogger()
 		if err == nil {
 			t.Error("should return error when config is invalid")
 		}

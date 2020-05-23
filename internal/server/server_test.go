@@ -17,13 +17,16 @@ func TestMain(m *testing.M) {
 }
 
 func initLogger() {
-	_ = log.InitLogger(&config.LoggerConfig{Level: "debug"})
+	config.Set(&config.Config{
+		Logger: config.LoggerConfig{Level: "debug"},
+	})
+	_ = log.InitLogger()
 }
 
 func TestNewAPIServer(t *testing.T) {
-	want := &APIServer{Srv: httprouter.New(), Config: &config.Config{}}
+	want := &APIServer{Srv: httprouter.New()}
 
-	got := NewAPIServer(&config.Config{})
+	got := NewAPIServer()
 
 	if !reflect.DeepEqual(got, want) {
 		t.Error("should return new APIServer")
