@@ -3,18 +3,11 @@ package server
 import (
 	"adeia-api/internal/config"
 	"adeia-api/internal/controllers"
-	"adeia-api/internal/logger"
+	log "adeia-api/internal/logger"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"go.uber.org/zap"
 )
-
-var log *zap.SugaredLogger
-
-func init() {
-	log = logger.Get()
-}
 
 // APIServer is the struct that holds all of the components that need to be
 // injected.

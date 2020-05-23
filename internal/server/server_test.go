@@ -2,7 +2,7 @@ package server
 
 import (
 	"adeia-api/internal/config"
-	"adeia-api/internal/logger"
+	log "adeia-api/internal/logger"
 	"os"
 	"reflect"
 	"testing"
@@ -17,8 +17,7 @@ func TestMain(m *testing.M) {
 }
 
 func initLogger() {
-	_ = logger.Init(&config.LoggerConfig{Level: "debug"})
-	log = logger.Get()
+	_ = log.InitLogger(&config.LoggerConfig{Level: "debug"})
 }
 
 func TestNewAPIServer(t *testing.T) {

@@ -3,6 +3,8 @@ package logger
 import (
 	"adeia-api/internal/config"
 	"go.uber.org/zap"
+	"reflect"
+	"sync"
 	"testing"
 )
 
@@ -31,18 +33,33 @@ func TestInit(t *testing.T) {
 	t.Run("should not return any error when config is valid", func(t *testing.T) {
 		conf := &config.LoggerConfig{Level: "debug"}
 
-		err := Init(conf)
+		err := InitLogger(conf)
 		if err != nil {
 			t.Errorf("should not return any error when config is valid: %v", err)
 		}
 	})
 
+	// reset sync.Once because logger was already initialized in the previous test
+	initLog = new(sync.Once)
+
 	t.Run("should return error when config is invalid", func(t *testing.T) {
 		conf := &config.LoggerConfig{Level: "debug123"}
 
-		err := Init(conf)
+		err := InitLogger(conf)
 		if err == nil {
 			t.Error("should return error when config is invalid")
 		}
 	})
+}
+
+func TestGetSet(t *testing.T) {
+	want := zap.NewExample().Sugar()
+
+	SetLogger(want)
+
+	got := logger.SugaredLogger
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
+	}
 }
