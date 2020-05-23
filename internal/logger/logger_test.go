@@ -52,7 +52,7 @@ func TestInit(t *testing.T) {
 	})
 }
 
-func TestGetSet(t *testing.T) {
+func TestSet(t *testing.T) {
 	want := zap.NewExample().Sugar()
 
 	SetLogger(want)
