@@ -60,5 +60,8 @@ func parseLevel(s string) (zapcore.Level, error) {
 
 // Get returns the logger instance
 func Get() *zap.SugaredLogger {
+	if logger == nil{
+		_ = Init(&config.LoggerConfig{Level: "debug"})
+	}
 	return logger
 }

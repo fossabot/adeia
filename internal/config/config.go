@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Server ServerConfig `yaml:"server"`
 	Logger LoggerConfig `yaml:"logger"`
+	Database DatabaseConfig `yaml:"database"`
 }
 
 // ServerConfig holds server-specific config.
@@ -21,6 +22,14 @@ type ServerConfig struct {
 // LoggerConfig holds config for the logger.
 type LoggerConfig struct {
 	Level string `yaml:"level"`
+}
+
+type DatabaseConfig struct {
+	host string `yaml:"host"`
+	username string `yaml:"username"`
+	password string `yaml:"password"`
+	database string `yaml:"database"`
+	ssl_mode string `yaml:"ssl_mode"`
 }
 
 // Load loads YAML from confPath into a new Config.

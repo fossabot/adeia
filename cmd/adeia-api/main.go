@@ -4,6 +4,7 @@ import (
 	"adeia-api/internal/config"
 	"adeia-api/internal/logger"
 	"adeia-api/internal/server"
+	"adeia-api/internal/service/database"
 	"fmt"
 	"os"
 )
@@ -20,11 +21,14 @@ func main() {
 		onError("cannot load config", err)
 	}
 
+
 	// init logger
 	err = logger.Init(&conf.Logger)
 	if err != nil {
 		onError("cannot initialize logger", err)
 	}
+
+	database.Check()
 
 	log := logger.Get()
 	defer log.Sync()

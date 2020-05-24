@@ -4,6 +4,7 @@ import (
 	"adeia-api/internal/config"
 	"adeia-api/internal/controllers"
 	"adeia-api/internal/logger"
+	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -25,7 +26,7 @@ type APIServer struct {
 
 // NewAPIServer returns a new APIServer with the passed-in config.
 func NewAPIServer(c *config.Config) *APIServer {
-	log.Debug("initializing new APIServer")
+	fmt.Print("initializing new APIServer")
 	return &APIServer{Srv: httprouter.New(), Config: c}
 }
 
