@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIndex(t *testing.T) {
@@ -15,13 +17,10 @@ func TestIndex(t *testing.T) {
 	response := httptest.NewRecorder()
 	Index(response, request, nil)
 
-	if statusCode := response.Result().StatusCode; statusCode != http.StatusOK {
-		t.Errorf("should return 200. got %q, want %q", statusCode, http.StatusOK)
-	}
+	statusCode := response.Result().StatusCode
+	assert.Equal(t, statusCode, http.StatusOK, "should return 200")
 
 	got := response.Body.String()
 	want := "Welcome\n"
-	if got != want {
-		t.Errorf("should return welcome message. got %q, want %q", got, want)
-	}
+	assert.Equal(t, got, want, "should return welcome message")
 }

@@ -1,33 +1,24 @@
 package server
 
 import (
-	"adeia-api/internal/config"
 	"adeia-api/internal/controllers"
-	"adeia-api/internal/logger"
-	"fmt"
+	log "adeia-api/internal/logger"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	"go.uber.org/zap"
+	config "github.com/spf13/viper"
 )
-
-var log *zap.SugaredLogger
-
-func init() {
-	log = logger.Get()
-}
 
 // APIServer is the struct that holds all of the components that need to be
 // injected.
 type APIServer struct {
-	Srv    *httprouter.Router
-	Config *config.Config
+	Srv *httprouter.Router
 }
 
 // NewAPIServer returns a new APIServer with the passed-in config.
-func NewAPIServer(c *config.Config) *APIServer {
-	fmt.Print("initializing new APIServer")
-	return &APIServer{Srv: httprouter.New(), Config: c}
+func NewAPIServer() *APIServer {
+	log.Debug("initializing new APIServer")
+	return &APIServer{Srv: httprouter.New()}
 }
 
 // AddRoutes registers the handles to the router.
@@ -39,7 +30,7 @@ func (a *APIServer) AddRoutes() {
 
 // Serve starts the server on the host and port, specified in the config.
 func (a *APIServer) Serve() error {
-	addr := a.Config.Server.Host + ":" + a.Config.Server.Port
+	addr := config.GetString("server.host") + ":" + config.GetString("server.port")
 	log.Infof("starting server on %q", addr)
 	return http.ListenAndServe(addr, a.Srv)
 }

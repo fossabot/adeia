@@ -1,13 +1,13 @@
 package server
 
 import (
-	"adeia-api/internal/config"
-	"adeia-api/internal/logger"
+	log "adeia-api/internal/logger"
 	"os"
-	"reflect"
 	"testing"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/magiconair/properties/assert"
+	config "github.com/spf13/viper"
 )
 
 func TestMain(m *testing.M) {
@@ -17,16 +17,14 @@ func TestMain(m *testing.M) {
 }
 
 func initLogger() {
-	_ = logger.Init(&config.LoggerConfig{Level: "debug"})
-	log = logger.Get()
+	config.Set("logger.level", "debug")
+	_ = log.InitLogger()
 }
 
 func TestNewAPIServer(t *testing.T) {
-	want := &APIServer{Srv: httprouter.New(), Config: &config.Config{}}
+	want := &APIServer{Srv: httprouter.New()}
 
-	got := NewAPIServer(&config.Config{})
+	got := NewAPIServer()
 
-	if !reflect.DeepEqual(got, want) {
-		t.Error("should return new APIServer")
-	}
+	assert.Equal(t, got, want, "should return new APIServer")
 }

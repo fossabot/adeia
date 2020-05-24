@@ -1,57 +1,52 @@
 package config
 
 import (
+	"errors"
 	"os"
+	"path/filepath"
+	"strings"
+	"sync"
 
-	"gopkg.in/yaml.v2"
+	"github.com/spf13/viper"
 )
 
-// Config holds all of the config needed for the application.
-type Config struct {
-	Server ServerConfig `yaml:"server"`
-	Logger LoggerConfig `yaml:"logger"`
-	Database DatabaseConfig `yaml:"database"`
+// initConf is used to ensure that config is initialized only once.
+var initConf *sync.Once
+
+func init() {
+	initConf = new(sync.Once)
 }
 
-// ServerConfig holds server-specific config.
-type ServerConfig struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
-}
+// LoadConf loads YAML from file specified by EnvConfPathKey into viper.
+// The file must be a readable file containing valid YAML.
+func LoadConf() error {
+	err := errors.New("config already loaded")
 
-// LoggerConfig holds config for the logger.
-type LoggerConfig struct {
-	Level string `yaml:"level"`
-}
+	initConf.Do(func() {
+		err = nil
 
-type DatabaseConfig struct {
-	host string `yaml:"host"`
-	username string `yaml:"username"`
-	password string `yaml:"password"`
-	database string `yaml:"database"`
-	ssl_mode string `yaml:"ssl_mode"`
-}
+		confPath := getEnv(EnvConfPathKey, "./config/config.yaml")
+		base := filepath.Base(confPath)
 
-// Load loads YAML from confPath into a new Config.
-// confPath must be a readable file containing valid YAML.
-func Load(confPath string) (*Config, error) {
-	conf := &Config{}
+		viper.SetConfigName(strings.TrimSuffix(base, filepath.Ext(base)))
+		viper.AddConfigPath(filepath.Dir(confPath))
+		viper.SetConfigType("yaml")
+		viper.SetEnvPrefix("adeia")
 
-	file, err := os.Open(confPath)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		cErr := file.Close()
-		if err == nil {
-			err = cErr
+		e := viper.ReadInConfig()
+		if e != nil {
+			err = e
+			return
 		}
-	}()
+	})
 
-	d := yaml.NewDecoder(file)
-	if err = d.Decode(&conf); err != nil {
-		return nil, err
+	return err
+}
+
+// getEnv returns value from env if key is present, otherwise returns fallback.
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
 	}
-
-	return conf, nil
+	return fallback
 }

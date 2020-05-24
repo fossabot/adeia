@@ -2,9 +2,8 @@ package main
 
 import (
 	"adeia-api/internal/config"
-	"adeia-api/internal/logger"
+	log "adeia-api/internal/logger"
 	"adeia-api/internal/server"
-	"adeia-api/internal/service/database"
 	"fmt"
 	"os"
 )
@@ -16,24 +15,22 @@ func onError(msg string, err error) {
 
 func main() {
 	// load config
-	conf, err := config.Load("./config/config.yaml")
+	err := config.LoadConf()
 	if err != nil {
 		onError("cannot load config", err)
 	}
 
-
 	// init logger
-	err = logger.Init(&conf.Logger)
+	err = log.InitLogger()
 	if err != nil {
 		onError("cannot initialize logger", err)
 	}
 
-	database.Check()
-
 	log := logger.Get()
 	defer log.Sync()
 
-	apiServer := server.NewAPIServer(conf)
+	// start serving
+	apiServer := server.NewAPIServer()
 	apiServer.AddRoutes()
 	if err := apiServer.Serve(); err != nil {
 		log.Panicf("error while serving: %v", err)
