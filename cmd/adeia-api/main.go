@@ -1,11 +1,39 @@
 package main
 
-import "fmt"
+import (
+	"adeia-api/internal/config"
+	log "adeia-api/internal/logger"
+	"adeia-api/internal/server"
+	"fmt"
+	"os"
+)
 
-func Hello() string {
-	return "Hello, world\n"
+func onError(msg string, err error) {
+	_, _ = fmt.Fprintf(os.Stderr, msg+": %v", err)
+	os.Exit(1)
 }
 
 func main() {
-	fmt.Printf(Hello())
+	// load config
+	err := config.LoadConf()
+	if err != nil {
+		onError("cannot load config", err)
+	}
+
+	// init logger
+	err = log.InitLogger()
+	if err != nil {
+		onError("cannot initialize logger", err)
+	}
+
+	defer func() {
+		_ = log.Sync()
+	}()
+
+	// start serving
+	apiServer := server.NewAPIServer()
+	apiServer.AddRoutes()
+	if err := apiServer.Serve(); err != nil {
+		log.Panicf("error while serving: %v", err)
+	}
 }
