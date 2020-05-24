@@ -3,10 +3,10 @@ package server
 import (
 	log "adeia-api/internal/logger"
 	"os"
-	"reflect"
 	"testing"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/magiconair/properties/assert"
 	config "github.com/spf13/viper"
 )
 
@@ -26,7 +26,5 @@ func TestNewAPIServer(t *testing.T) {
 
 	got := NewAPIServer()
 
-	if !reflect.DeepEqual(got, want) {
-		t.Error("should return new APIServer")
-	}
+	assert.Equal(t, got, want, "should return new APIServer")
 }
