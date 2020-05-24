@@ -1,12 +1,12 @@
 package server
 
 import (
-	"adeia-api/internal/config"
 	"adeia-api/internal/controllers"
 	log "adeia-api/internal/logger"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
+	config "github.com/spf13/viper"
 )
 
 // APIServer is the struct that holds all of the components that need to be
@@ -30,7 +30,7 @@ func (a *APIServer) AddRoutes() {
 
 // Serve starts the server on the host and port, specified in the config.
 func (a *APIServer) Serve() error {
-	addr := config.Get().Server.Host + ":" + config.Get().Server.Port
+	addr := config.GetString("server.host") + ":" + config.GetString("server.port")
 	log.Infof("starting server on %q", addr)
 	return http.ListenAndServe(addr, a.Srv)
 }

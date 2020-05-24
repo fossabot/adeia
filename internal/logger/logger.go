@@ -1,11 +1,11 @@
 package logger
 
 import (
-	"adeia-api/internal/config"
 	"errors"
 	"strings"
 	"sync"
 
+	config "github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -45,7 +45,7 @@ func InitLogger() error {
 		err = nil
 
 		// parse log level
-		level, e := parseLevel(config.Get().Logger.Level)
+		level, e := parseLevel(config.GetString("logger.level"))
 		if e != nil {
 			err = e
 			return
@@ -83,6 +83,13 @@ func parseLevel(s string) (zapcore.Level, error) {
 func SetLogger(l *zap.SugaredLogger) {
 	logger.SugaredLogger = l
 }
+
+// ==========
+// Wrapper methods
+// ==========
+
+// We use wrapper methods so that we need not have verbose func calls like logger.log.info(...).
+// Doing this, we can do so with just logger.info(...).
 
 // Sync wraps SugaredLogger's Sync.
 func Sync() error {

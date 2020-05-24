@@ -3,9 +3,10 @@ package config
 import (
 	"io/ioutil"
 	"os"
-	"reflect"
 	"sync"
 	"testing"
+
+	"github.com/spf13/viper"
 )
 
 func setupTestConf(content, pattern string) (*os.File, error) {
@@ -19,14 +20,19 @@ func setupTestConf(content, pattern string) (*os.File, error) {
 		return nil, err
 	}
 
+	_ = f.Chmod(0666)
+
 	return f, nil
 }
 
 func TestLoad(t *testing.T) {
 	validConf := `
 server:
-  host: "test"
+  host: test
   port: 1234
+
+logger:
+  level: info
 `
 	validConfFile, err := setupTestConf(validConf, "adeia-valid-config")
 	if err != nil {
@@ -44,23 +50,27 @@ server:
 	defer func() {
 		_ = os.Remove(validConfFile.Name())
 		_ = os.Remove(invalidConfFile.Name())
-		_ = os.Unsetenv("ADEIA_CONF_PATH")
+		_ = os.Unsetenv(EnvConfPathKey)
 	}()
 
 	t.Run("should load without any errors", func(t *testing.T) {
-		want := &Config{}
-		want.Server.Port = "1234"
-		want.Server.Host = "test"
+		want := viper.New()
+		want.Set("server.port", "1234")
+		want.Set("server.host", "test")
+		want.Set("logger.level", "info")
 
-		_ = os.Setenv("ADEIA_CONF_PATH", validConfFile.Name())
+		t.Log(validConfFile.Name())
+		_ = os.Setenv(EnvConfPathKey, validConfFile.Name())
 		err := LoadConf()
-		got := Get()
+		got := viper.GetViper()
 
 		if err != nil {
-			t.Errorf("should not return error. %q", err)
+			t.Errorf("should not return error. %v", err)
 		}
 
-		if !reflect.DeepEqual(got, want) {
+		if want.GetString("server.port") != got.GetString("server.port") ||
+			want.GetString("server.host") != got.GetString("server.host") ||
+			want.GetString("logger.level") != got.GetString("logger.level") {
 			t.Errorf("got %+v, want %+v", got, want)
 		}
 	})
@@ -68,7 +78,7 @@ server:
 	initConf = new(sync.Once)
 
 	t.Run("should return error when file is nonexistent", func(t *testing.T) {
-		_ = os.Setenv("ADEIA_CONF_PATH", "/tmp/foo")
+		_ = os.Setenv(EnvConfPathKey, "/tmp/foo")
 		err := LoadConf()
 
 		if err == nil {
@@ -79,7 +89,7 @@ server:
 	initConf = new(sync.Once)
 
 	t.Run("should return error when yaml is invalid", func(t *testing.T) {
-		_ = os.Setenv("ADEIA_CONF_PATH", invalidConfFile.Name())
+		_ = os.Setenv(EnvConfPathKey, invalidConfFile.Name())
 		err := LoadConf()
 
 		if err == nil {

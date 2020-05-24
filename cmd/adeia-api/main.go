@@ -30,6 +30,7 @@ func main() {
 		_ = log.Sync()
 	}()
 
+	// start serving
 	apiServer := server.NewAPIServer()
 	apiServer.AddRoutes()
 	if err := apiServer.Serve(); err != nil {

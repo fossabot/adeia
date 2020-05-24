@@ -1,13 +1,13 @@
 package server
 
 import (
-	"adeia-api/internal/config"
 	log "adeia-api/internal/logger"
 	"os"
 	"reflect"
 	"testing"
 
 	"github.com/julienschmidt/httprouter"
+	config "github.com/spf13/viper"
 )
 
 func TestMain(m *testing.M) {
@@ -17,9 +17,7 @@ func TestMain(m *testing.M) {
 }
 
 func initLogger() {
-	config.Set(&config.Config{
-		Logger: config.LoggerConfig{Level: "debug"},
-	})
+	config.Set("logger.level", "debug")
 	_ = log.InitLogger()
 }
 

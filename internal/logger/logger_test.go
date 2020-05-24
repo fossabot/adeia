@@ -1,11 +1,12 @@
 package logger
 
 import (
-	"adeia-api/internal/config"
-	"go.uber.org/zap"
 	"reflect"
 	"sync"
 	"testing"
+
+	config "github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 func TestParseLevel(t *testing.T) {
@@ -31,9 +32,7 @@ func TestParseLevel(t *testing.T) {
 
 func TestInit(t *testing.T) {
 	t.Run("should not return any error when config is valid", func(t *testing.T) {
-		config.Set(&config.Config{
-			Logger: config.LoggerConfig{Level: "debug"},
-		})
+		config.Set("logger.level", "debug")
 
 		err := InitLogger()
 		if err != nil {
@@ -45,9 +44,7 @@ func TestInit(t *testing.T) {
 	initLog = new(sync.Once)
 
 	t.Run("should return error when config is invalid", func(t *testing.T) {
-		config.Set(&config.Config{
-			Logger: config.LoggerConfig{Level: "debug123"},
-		})
+		config.Set("logger.level", "debug123")
 
 		err := InitLogger()
 		if err == nil {
