@@ -1,6 +1,7 @@
 package config
 
 import (
+	"adeia-api/internal/utils"
 	"errors"
 	"os"
 	"path/filepath"
@@ -25,7 +26,7 @@ func LoadConf() error {
 	initConf.Do(func() {
 		err = nil
 
-		confPath := getEnv(EnvConfPathKey, "./config/config.yaml")
+		confPath := getEnv(utils.EnvConfPathKey, "./config/config.yaml")
 		base := filepath.Base(confPath)
 
 		viper.SetConfigName(strings.TrimSuffix(base, filepath.Ext(base)))
