@@ -1,7 +1,7 @@
 package server
 
 import (
-	log "adeia-api/internal/logger"
+	log "adeia-api/internal/utils/logger"
 	"os"
 	"testing"
 
