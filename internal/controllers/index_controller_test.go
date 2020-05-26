@@ -24,3 +24,20 @@ func TestIndex(t *testing.T) {
 	want := "Welcome\n"
 	assert.Equal(t, got, want, "should return welcome message")
 }
+
+func TestIndex2(t *testing.T) {
+	request, err := http.NewRequest(http.MethodGet, "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	response := httptest.NewRecorder()
+	Index2(response, request, nil)
+
+	statusCode := response.Result().StatusCode
+	assert.Equal(t, statusCode, http.StatusOK, "should return 200")
+
+	got := response.Body.String()
+	want := "Welcome2\n"
+	assert.Equal(t, got, want, "should return welcome message")
+}
