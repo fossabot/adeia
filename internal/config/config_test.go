@@ -1,6 +1,7 @@
 package config
 
 import (
+	"adeia-api/internal/utils"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -53,7 +54,7 @@ logger:
 	defer func() {
 		_ = os.Remove(validConfFile.Name())
 		_ = os.Remove(invalidConfFile.Name())
-		_ = os.Unsetenv(EnvConfPathKey)
+		_ = os.Unsetenv(utils.EnvConfPathKey)
 	}()
 
 	t.Run("should load without any errors", func(t *testing.T) {
@@ -62,7 +63,7 @@ logger:
 		want.Set("server.host", "test")
 		want.Set("logger.level", "info")
 
-		_ = os.Setenv(EnvConfPathKey, validConfFile.Name())
+		_ = os.Setenv(utils.EnvConfPathKey, validConfFile.Name())
 		err := LoadConf()
 		got := viper.GetViper()
 
@@ -76,7 +77,7 @@ logger:
 	initConf = new(sync.Once)
 
 	t.Run("should return error when file is nonexistent", func(t *testing.T) {
-		_ = os.Setenv(EnvConfPathKey, "/tmp/foo")
+		_ = os.Setenv(utils.EnvConfPathKey, "/tmp/foo")
 		err := LoadConf()
 		assert.Error(t, err, "should return error when file does not exist")
 	})
@@ -84,7 +85,7 @@ logger:
 	initConf = new(sync.Once)
 
 	t.Run("should return error when yaml is invalid", func(t *testing.T) {
-		_ = os.Setenv(EnvConfPathKey, invalidConfFile.Name())
+		_ = os.Setenv(utils.EnvConfPathKey, invalidConfFile.Name())
 		err := LoadConf()
 		assert.Error(t, err, "should return error when yaml is invalid")
 	})

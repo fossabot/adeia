@@ -1,4 +1,4 @@
-package config
+package utils
 
 const (
 	// EnvConfPathKey is the env key for confPath.

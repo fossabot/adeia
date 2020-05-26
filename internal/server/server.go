@@ -2,7 +2,7 @@ package server
 
 import (
 	"adeia-api/internal/controllers"
-	log "adeia-api/internal/logger"
+	log "adeia-api/internal/utils/logger"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"

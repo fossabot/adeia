@@ -2,8 +2,8 @@ package main
 
 import (
 	"adeia-api/internal/config"
-	log "adeia-api/internal/logger"
 	"adeia-api/internal/server"
+	log "adeia-api/internal/utils/logger"
 	"fmt"
 	"os"
 )
