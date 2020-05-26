@@ -25,7 +25,6 @@ func main() {
 	if err != nil {
 		onError("cannot initialize logger", err)
 	}
-
 	defer func() {
 		_ = log.Sync()
 	}()

@@ -2,34 +2,40 @@ package route
 
 import (
 	"adeia-api/internal/middleware"
+	"net/http"
 
 	"github.com/julienschmidt/httprouter"
 )
 
+// Route represents an API route containing a path, method, handler and a
+// middleware chain.
 type Route struct {
 	Method     string
 	Path       string
-	Handle     httprouter.Handle
+	Handler    http.Handler
 	Middleware middleware.FuncChain
 }
 
-func New(method, path string, handle httprouter.Handle, middleware middleware.FuncChain) *Route {
+// New creates a new Route with the provided params.
+func New(method, path string, handler http.HandlerFunc, middleware middleware.FuncChain) *Route {
 	return &Route{
 		Method:     method,
 		Path:       path,
-		Handle:     handle,
+		Handler:    handler,
 		Middleware: middleware,
 	}
 }
 
+// BindRoutes binds/mounts the provided routes to the router and, also composes
+// (adds) all the middleware funcs (in order) to the handler.
 func BindRoutes(router *httprouter.Router, routes []*Route) {
 	for _, route := range routes {
-		handle := route.Handle
+		handler := route.Handler
 
 		// apply middleware on the handle
-		handle = route.Middleware.Compose(handle)
+		handler = route.Middleware.Compose(handler)
 
 		// mount route
-		router.Handle(route.Method, route.Path, handle)
+		router.Handler(route.Method, route.Path, handler)
 	}
 }

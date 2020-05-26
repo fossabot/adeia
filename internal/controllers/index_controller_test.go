@@ -15,14 +15,14 @@ func TestIndex(t *testing.T) {
 	}
 
 	response := httptest.NewRecorder()
-	Index(response, request, nil)
+	Index(response, request)
 
 	statusCode := response.Result().StatusCode
-	assert.Equal(t, statusCode, http.StatusOK, "should return 200")
+	assert.Equal(t, http.StatusOK, statusCode, "should return 200")
 
 	got := response.Body.String()
 	want := "Welcome\n"
-	assert.Equal(t, got, want, "should return welcome message")
+	assert.Equal(t, want, got, "should return welcome message")
 }
 
 func TestIndex2(t *testing.T) {
@@ -32,12 +32,12 @@ func TestIndex2(t *testing.T) {
 	}
 
 	response := httptest.NewRecorder()
-	Index2(response, request, nil)
+	Index2(response, request)
 
 	statusCode := response.Result().StatusCode
-	assert.Equal(t, statusCode, http.StatusOK, "should return 200")
+	assert.Equal(t, http.StatusOK, statusCode, "should return 200")
 
 	got := response.Body.String()
-	want := "Welcome2\n"
-	assert.Equal(t, got, want, "should return welcome message")
+	want := "Welcome 2\n"
+	assert.Equal(t, want, got, "should return welcome message")
 }

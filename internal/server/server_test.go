@@ -1,6 +1,7 @@
 package server
 
 import (
+	"adeia-api/internal/middleware"
 	log "adeia-api/internal/utils/logger"
 	"os"
 	"testing"
@@ -22,9 +23,9 @@ func initLogger() {
 }
 
 func TestNewAPIServer(t *testing.T) {
-	want := &APIServer{Srv: httprouter.New()}
+	want := &APIServer{Srv: httprouter.New(), GlobalMiddleware: middleware.NewChain()}
 
 	got := NewAPIServer()
 
-	assert.Equal(t, got, want, "should return new APIServer")
+	assert.Equal(t, want, got, "should return new APIServer")
 }
