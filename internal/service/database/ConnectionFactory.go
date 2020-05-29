@@ -1,13 +1,13 @@
 package database
 
 import (
+	log "adeia-api/internal/utils/logger"
 	"errors"
 	"fmt"
 	"reflect"
-)
 
-import "github.com/jmoiron/sqlx"
-import log "adeia-api/internal/logger"
+	"github.com/jmoiron/sqlx"
+)
 
 type Query string
 
@@ -29,7 +29,7 @@ type limitOption struct {
 	count  int
 }
 
-type selectOption interface {
+type SelectOption interface {
 	Wrap(string, []interface{}) (string, []interface{})
 }
 
@@ -41,7 +41,7 @@ var (
 	ErrNoInserterFound = errors.New("No inserter found")
 )
 
-func Limit(offset, count int) selectOption {
+func Limit(offset, count int) SelectOption {
 	return &limitOption{offset, count}
 }
 
@@ -52,13 +52,13 @@ func (o *limitOption) Wrap(query string, params []interface{}) (string, []interf
 	return query, params
 }
 
-func (tx *Tx) Selectx(o interface{}, qx Queryx, options ...selectOption) error {
+func (tx *Tx) Selectx(o interface{}, qx Queryx, options ...SelectOption) error {
 	q := string(qx.Query)
 	params := qx.Params
 	for _, option := range options {
 		q, params = option.Wrap(q, params)
 	}
-	if u, ok := o.(Selecter); ok {
+	if u, ok := o.(Selector); ok {
 		return u.Select(tx.Tx, Query(q), params...)
 	}
 	stmt, err := tx.Preparex(q)
@@ -71,15 +71,19 @@ func (tx *Tx) Selectx(o interface{}, qx Queryx, options ...selectOption) error {
 type Updater interface {
 	Update(*sqlx.Tx) error
 }
+
 type Inserter interface {
 	Insert(*sqlx.Tx) error
 }
-type Selecter interface {
+
+type Selector interface {
 	Select(*sqlx.Tx, Query, ...interface{}) error
 }
+
 type Getter interface {
 	Get(*sqlx.Tx, Query, ...interface{}) error
 }
+
 type Deleter interface {
 	Delete(*sqlx.Tx) error
 }
@@ -93,6 +97,7 @@ func (tx *Tx) Countx(qx Queryx) (int, error) {
 	err = stmt.Get(&count, qx.Params...)
 	return count, err
 }
+
 func (tx *Tx) Getx(o interface{}, qx Queryx) error {
 	if u, ok := o.(Getter); ok {
 		return u.Get(tx.Tx, qx.Query, qx.Params...)
@@ -103,6 +108,7 @@ func (tx *Tx) Getx(o interface{}, qx Queryx) error {
 	}
 	return stmt.Get(o, qx.Params...)
 }
+
 func (tx *Tx) Get(o interface{}, query Query, params ...interface{}) error {
 	if u, ok := o.(Getter); ok {
 		return u.Get(tx.Tx, query, params...)
@@ -113,6 +119,7 @@ func (tx *Tx) Get(o interface{}, query Query, params ...interface{}) error {
 	}
 	return stmt.Get(o, params...)
 }
+
 func (tx *Tx) Update(o interface{}) error {
 	if u, ok := o.(Updater); ok {
 		return u.Update(tx.Tx)
@@ -120,6 +127,7 @@ func (tx *Tx) Update(o interface{}) error {
 	log.Debug("No updater found for object: %s", reflect.TypeOf(o))
 	return ErrNoUpdaterFound
 }
+
 func (tx *Tx) Delete(o interface{}) error {
 	if u, ok := o.(Deleter); ok {
 		return u.Delete(tx.Tx)
@@ -127,9 +135,9 @@ func (tx *Tx) Delete(o interface{}) error {
 	log.Debug("No deleter found for object: %s", reflect.TypeOf(o))
 	return ErrNoDeleterFound
 }
+
 func (tx *Tx) Insert(o interface{}) error {
-	if u, ok := o.(Inserter);
-	ok {
+	if u, ok := o.(Inserter); ok {
 		err := u.Insert(tx.Tx)
 		if err != nil {
 			log.Error(err.Error())
@@ -139,6 +147,7 @@ func (tx *Tx) Insert(o interface{}) error {
 	log.Debug("No inserter found for object: %s", reflect.TypeOf(o))
 	return ErrNoInserterFound
 }
+
 func (db *DB) Begin() *Tx {
 	tx := db.MustBegin()
 	return &Tx{tx}

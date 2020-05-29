@@ -1,7 +1,8 @@
 package database
 
 import (
-	log "adeia-api/internal/logger"
+	log "adeia-api/internal/utils/logger"
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -14,14 +15,14 @@ func openConnection(dataSourceName, driverName string) (*sqlx.DB, error) {
 		return nil, err
 	}
 	defer db.Close()
-	log.Debug("Successfully connected to database: "+ driverName)
+	log.Debug("Successfully connected to database: " + driverName)
 	return db, nil
 }
 
 func getConnection() *sqlx.DB {
 	if databaseConnection == nil {
-		datasourceName := getValidDriverName("localhost", "5432", "dyanesh", "varun", "mydb", "disable")
-		databaseConnection, err := openConnection(datasourceName, "postgres")
+		dataSourceName := getValidDriverName("localhost", "5432", "dyanesh", "varun", "mydb", "disable")
+		databaseConnection, err := openConnection(dataSourceName, "postgres")
 		if err == nil {
 			return databaseConnection
 		}
@@ -40,10 +41,10 @@ func getValidDriverName(host, port, user, password, dbname, sslmode string) stri
 		"sslmode=" + sslmode
 }
 
-func ExecuteQuery(query Query, parameters[] string) int64 {
+func ExecuteQuery(query Query, parameters []string) int64 {
 	dbConn := getConnection()
 	rows, err := dbConn.Exec(string(query), parameters)
-	if err!=nil {
+	if err != nil {
 		log.Error(err)
 		return 0
 	}

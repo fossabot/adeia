@@ -1,18 +1,20 @@
-
 package model
+
 import (
 	db "adeia-api/internal/service/database"
 	"database/sql/driver"
-	"github.com/jmoiron/sqlx"
 	"time"
-)
 
+	"github.com/jmoiron/sqlx"
+)
 
 type Gender string
+
 var (
-	GenderMale    Gender = "male"
-	GenderFemale  Gender = "female"
+	GenderMale   Gender = "male"
+	GenderFemale Gender = "female"
 )
+
 func (u *Gender) Scan(value interface{}) error {
 	if value == nil {
 		return nil
@@ -21,30 +23,34 @@ func (u *Gender) Scan(value interface{}) error {
 	*u = Gender(b)
 	return nil
 }
+
 func (u Gender) Value() (driver.Value, error) {
 	return string(u), nil
 }
+
 type Person struct {
-	PersonID      int 		 `db:"person_id"`
-	FirstName     string     `db:"first_name"`
-	LastName      string     `db:"last_name"`
-	Active        bool       `db:"active"`
-	Gender        Gender     `db:"gender"`
-	ModifiedDate  time.Time  `db:"modified_date"`
+	PersonID     int       `db:"person_id"`
+	FirstName    string    `db:"first_name"`
+	LastName     string    `db:"last_name"`
+	Active       bool      `db:"active"`
+	Gender       Gender    `db:"gender"`
+	ModifiedDate time.Time `db:"modified_date"`
 }
+
 var (
-	queryPersons        db.Query = "SELECT person_id, first_name, last_name, gender, active, modified_date FROM persons"
-	queryPersonByID     db.Query = "SELECT person_id, first_name, last_name, gender, active, modified_date FROM persons WHERE person_id=:person_id"
-	queryPersonInsert   db.Query = "INSERT INTO persons (person_id, first_name, last_name, gender, active, modified_date) VALUES (:person_id, :first_name, :last_name, :gender, :active, :modified_date)"
-	queryPersonUpdate   db.Query = "UPDATE persons SET first_name=:first_name, last_name=:last_name, gender=:gender, modified_date=:modified_date, active=:active WHERE person_id=:person_id"
+	queryPersons      db.Query = "SELECT person_id, first_name, last_name, gender, active, modified_date FROM persons"
+	queryPersonByID   db.Query = "SELECT person_id, first_name, last_name, gender, active, modified_date FROM persons WHERE person_id=:person_id"
+	queryPersonInsert db.Query = "INSERT INTO persons (person_id, first_name, last_name, gender, active, modified_date) VALUES (:person_id, :first_name, :last_name, :gender, :active, :modified_date)"
+	queryPersonUpdate db.Query = "UPDATE persons SET first_name=:first_name, last_name=:last_name, gender=:gender, modified_date=:modified_date, active=:active WHERE person_id=:person_id"
 )
+
 func QueryPersons(offset, count int) db.Queryx {
 	return db.Queryx{
-		Query: queryPersons,
-		Params: []interface{}{
-		},
+		Query:  queryPersons,
+		Params: []interface{}{},
 	}
 }
+
 func QueryPersonByID(personID int) db.Queryx {
 	return db.Queryx{
 		Query: queryPersonByID,
@@ -53,21 +59,23 @@ func QueryPersonByID(personID int) db.Queryx {
 		},
 	}
 }
+
 func NewPerson() *Person {
-	return &Person{PersonID: 1, ModifiedDate: time.Now() }
+	return &Person{PersonID: 1, ModifiedDate: time.Now()}
 }
+
 func (s *Person) Insert(tx *sqlx.Tx) error {
 	_, err := tx.NamedExec(string(queryPersonInsert), s)
 	return err
 }
+
 func (s *Person) Update(tx *sqlx.Tx) error {
 	s.ModifiedDate = time.Now()
 	_, err := tx.NamedExec(string(queryPersonUpdate), s)
 	return err
 }
+
 func (s *Person) Delete(tx *sqlx.Tx) error {
 	s.Active = false
 	return s.Update(tx)
 }
-
-
