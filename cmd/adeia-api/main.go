@@ -2,8 +2,8 @@ package main
 
 import (
 	"adeia-api/internal/config"
-	log "adeia-api/internal/logger"
 	"adeia-api/internal/server"
+	log "adeia-api/internal/utils/logger"
 	"adeia-api/internal/service/database"
 	"fmt"
 	"os"
@@ -27,7 +27,9 @@ func main() {
 		onError("cannot initialize logger", err)
 	}
 
-	defer log.Sync()
+	defer func() {
+		_ = log.Sync()
+	}()
 
 	database.Check()
 	// start serving
