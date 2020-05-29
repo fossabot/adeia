@@ -7,9 +7,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var databaseConnection *sqlx.DB
+var dbConn *sqlx.DB
 
-func openConnection(dataSourceName, driverName string) (*sqlx.DB, error) {
+func openConn(dataSourceName, driverName string) (*sqlx.DB, error) {
 	db, err := sqlx.Connect(driverName, dataSourceName)
 	if err != nil {
 		return nil, err
@@ -19,17 +19,17 @@ func openConnection(dataSourceName, driverName string) (*sqlx.DB, error) {
 	return db, nil
 }
 
-func getConnection() *sqlx.DB {
-	if databaseConnection == nil {
-		dataSourceName := getValidDriverName("localhost", "5432", "dyanesh", "varun", "mydb", "disable")
-		databaseConnection, err := openConnection(dataSourceName, "postgres")
+func getConn() *sqlx.DB {
+	if dbConn == nil {
+		dsn := getValidDriverName("localhost", "5432", "dyanesh", "varun", "mydb", "disable")
+		dbConn, err := openConn(dsn, "postgres")
 		if err == nil {
-			return databaseConnection
+			return dbConn
 		}
 		print(err)
 		panic(err)
 	}
-	return databaseConnection
+	return dbConn
 }
 
 func getValidDriverName(host, port, user, password, dbname, sslmode string) string {
@@ -42,7 +42,7 @@ func getValidDriverName(host, port, user, password, dbname, sslmode string) stri
 }
 
 func ExecuteQuery(query Query, parameters []string) int64 {
-	dbConn := getConnection()
+	dbConn := getConn()
 	rows, err := dbConn.Exec(string(query), parameters)
 	if err != nil {
 		log.Error(err)
@@ -53,7 +53,7 @@ func ExecuteQuery(query Query, parameters []string) int64 {
 }
 
 func Check() {
-	dbConn := getConnection()
+	dbConn := getConn()
 	rows := ExecuteQuery("INSERT into test values (1,2,3)", []string{})
 	log.Debug(rows)
 	//print(rows.LastInsertId())
