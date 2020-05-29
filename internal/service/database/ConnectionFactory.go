@@ -7,7 +7,7 @@ import (
 )
 
 import "github.com/jmoiron/sqlx"
-import "adeia-api/internal/logger"
+import log "adeia-api/internal/logger"
 
 type Query string
 
@@ -33,7 +33,6 @@ type selectOption interface {
 	Wrap(string, []interface{}) (string, []interface{})
 }
 
-var log = logger.Get()
 var (
 	ErrNoGetterFound   = errors.New("No getter found")
 	ErrNoDeleterFound  = errors.New("No deleter found")

@@ -1,6 +1,7 @@
 package database
 
 import (
+	log "adeia-api/internal/logger"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -12,7 +13,8 @@ func openConnection(dataSourceName, driverName string) (*sqlx.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("Successfully connected to database")
+	defer db.Close()
+	log.Debug("Successfully connected to database: "+ driverName)
 	return db, nil
 }
 
@@ -38,22 +40,21 @@ func getValidDriverName(host, port, user, password, dbname, sslmode string) stri
 		"sslmode=" + sslmode
 }
 
-func ExecuteQuery(model interface{}, query Query, parameters[] string){
+func ExecuteQuery(query Query, parameters[] string) int64 {
 	dbConn := getConnection()
-
+	rows, err := dbConn.Exec(string(query), parameters)
+	if err!=nil {
+		log.Error(err)
+		return 0
+	}
+	rowsCount, _ := rows.RowsAffected()
+	return rowsCount
 }
 
 func Check() {
 	dbConn := getConnection()
-	rows, err := dbConn.Exec("CREATE TABLE IF NOT EXISTS test (A INT,B INT,C INT)")
-	if err != nil {
-		log.Error(err)
-	}
-	rows, err = dbConn.Exec("INSERT into test values (1,2,3)")
-	if err != nil {
-		log.Debug(err)
-	}
-	log.Debug(rows.RowsAffected())
+	rows := ExecuteQuery("INSERT into test values (1,2,3)", []string{})
+	log.Debug(rows)
 	//print(rows.LastInsertId())
 	e := dbConn.Close()
 	log.Debug(e)

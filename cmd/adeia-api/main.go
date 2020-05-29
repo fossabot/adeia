@@ -4,6 +4,7 @@ import (
 	"adeia-api/internal/config"
 	log "adeia-api/internal/logger"
 	"adeia-api/internal/server"
+	"adeia-api/internal/service/database"
 	"fmt"
 	"os"
 )
@@ -26,9 +27,9 @@ func main() {
 		onError("cannot initialize logger", err)
 	}
 
-	log := logger.Get()
 	defer log.Sync()
 
+	database.Check()
 	// start serving
 	apiServer := server.NewAPIServer()
 	apiServer.AddRoutes()
