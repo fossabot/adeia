@@ -4,3 +4,17 @@ server:
 
 logger:
   level: debug
+
+database:
+  dbname: test
+  user: dev
+  password: password
+  host: localhost
+  port: 5432
+  sslmode: disable
+  # ignore the following, if sslmode is 'disable'
+  # for more info,
+  # see: https://pkg.go.dev/github.com/lib/pq?tab=doc#hdr-Connection_String_Parameters
+  sslcert: path-to-sslcert
+  sslkey: path-to-sslkey
+  sslrootcert: path-to-sslrootcert

@@ -16,10 +16,6 @@ type Queryx struct {
 	Params []interface{}
 }
 
-type DB struct {
-	*sqlx.DB
-}
-
 type Tx struct {
 	*sqlx.Tx
 }

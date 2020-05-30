@@ -2,61 +2,94 @@ package database
 
 import (
 	log "adeia-api/internal/utils/logger"
+	"errors"
+	"sync"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	config "github.com/spf13/viper"
 )
 
-var dbConn *sqlx.DB
-
-func openConn(dataSourceName, driverName string) (*sqlx.DB, error) {
-	db, err := sqlx.Connect(driverName, dataSourceName)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-	log.Debug("Successfully connected to database: " + driverName)
-	return db, nil
+type DB struct {
+	*sqlx.DB
 }
 
-func getConn() *sqlx.DB {
-	if dbConn == nil {
-		dsn := getValidDriverName("localhost", "5432", "dyanesh", "varun", "mydb", "disable")
-		dbConn, err := openConn(dsn, "postgres")
-		if err == nil {
-			return dbConn
+var (
+	// dbConn is the db connection instance.
+	dbConn *DB
+	// data-source name
+	dsn string
+	// initConn is used to ensure that dbConn is initialized only once.
+	initConn = new(sync.Once)
+)
+
+func Init() error {
+	err := errors.New("config already loaded")
+
+	initConn.Do(func() {
+		err = nil
+		dsn = buildDSN()
+		c, e := newConn("postgres")
+		if e != nil {
+			err = e
+			return
 		}
-		print(err)
-		panic(err)
-	}
+
+		dbConn = &DB{c}
+	})
+
+	return err
+}
+
+func Close() error {
+	return dbConn.Close()
+}
+
+func GetConn() *DB {
 	return dbConn
 }
 
-func getValidDriverName(host, port, user, password, dbname, sslmode string) string {
-	return "host=" + host + " " +
-		"port=" + port + " " +
-		"user=" + user + " " +
-		"password=" + password + " " +
-		"dbname=" + dbname + " " +
-		"sslmode=" + sslmode
-}
-
-func ExecuteQuery(query Query, parameters []string) int64 {
-	dbConn := getConn()
-	rows, err := dbConn.Exec(string(query), parameters)
+func newConn(driver string) (*sqlx.DB, error) {
+	db, err := sqlx.Connect(driver, dsn)
 	if err != nil {
-		log.Error(err)
-		return 0
+		return nil, err
 	}
-	rowsCount, _ := rows.RowsAffected()
-	return rowsCount
+	log.Debug("Successfully connected to database: " + driver)
+	return db, nil
 }
 
-func Check() {
-	dbConn := getConn()
-	rows := ExecuteQuery("INSERT into test values (1,2,3)", []string{})
-	log.Debug(rows)
-	//print(rows.LastInsertId())
-	e := dbConn.Close()
-	log.Debug(e)
+func buildDSN() string {
+	// helper to get config
+	getConfig := func(k string) string {
+		return config.GetString("database." + k)
+	}
+
+	// get values from config
+	params := map[string]string{
+		"dbname":   getConfig("dbname"),
+		"user":     getConfig("user"),
+		"password": getConfig("password"),
+		"host":     getConfig("host"),
+		"port":     getConfig("port"),
+		"sslmode":  getConfig("sslmode"),
+	}
+	sslParams := map[string]string{
+		"sslcert":     getConfig("sslcert"),
+		"sslkey":      getConfig("sslkey"),
+		"sslrootcert": getConfig("sslrootcert"),
+	}
+
+	dsn := ""
+	for k, v := range params {
+		dsn += k + "='" + v + "'"
+	}
+
+	// add ssl params if ssl is enabled
+	if params["sslmode"] != "disable" {
+		for k, v := range sslParams {
+			dsn += k + "='" + v + "'"
+		}
+	}
+
+	return dsn
 }
