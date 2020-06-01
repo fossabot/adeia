@@ -20,7 +20,7 @@ type Logger struct {
 // logger.
 var (
 	logger  *Logger
-	initLog *sync.Once
+	initLog = new(sync.Once)
 )
 
 // levels is a map of supported log levels.
@@ -31,10 +31,6 @@ var levels = map[string]zapcore.Level{
 	"error": zap.ErrorLevel,
 	"panic": zap.PanicLevel,
 	"fatal": zap.FatalLevel,
-}
-
-func init() {
-	initLog = new(sync.Once)
 }
 
 // InitLogger initializes a new logger instance based on config.
@@ -58,7 +54,7 @@ func InitLogger() error {
 		cfg.OutputPaths = []string{"stdout"}
 
 		// build logger from config
-		l, e := cfg.Build()
+		l, e := cfg.Build(zap.AddCallerSkip(1))
 		if e != nil {
 			err = e
 			return
