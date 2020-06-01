@@ -6,6 +6,7 @@ logger:
   level: debug
 
 database:
+  driver: postgres
   dbname: test
   user: dev
   password: password

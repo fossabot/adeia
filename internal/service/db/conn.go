@@ -1,4 +1,4 @@
-package database
+package db
 
 import (
 	log "adeia-api/internal/utils/logger"
@@ -6,10 +6,12 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
+	// import postgres driver
 	_ "github.com/lib/pq"
 	config "github.com/spf13/viper"
 )
 
+// DB represents the database object.
 type DB struct {
 	*sqlx.DB
 }
@@ -23,13 +25,14 @@ var (
 	initConn = new(sync.Once)
 )
 
+// Init creates a new db connection instance using values from the config.
 func Init() error {
 	err := errors.New("config already loaded")
 
 	initConn.Do(func() {
 		err = nil
 		dsn = buildDSN()
-		c, e := newConn("postgres")
+		c, e := newConn(config.GetString("database.driver"))
 		if e != nil {
 			err = e
 			return
@@ -41,10 +44,12 @@ func Init() error {
 	return err
 }
 
+// Close closes the connection.
 func Close() error {
 	return dbConn.Close()
 }
 
+// GetConn returns the connection instance.
 func GetConn() *DB {
 	return dbConn
 }

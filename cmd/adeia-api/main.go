@@ -3,7 +3,7 @@ package main
 import (
 	"adeia-api/internal/config"
 	"adeia-api/internal/server"
-	db "adeia-api/internal/service/database"
+	"adeia-api/internal/service/db"
 	log "adeia-api/internal/utils/logger"
 	"fmt"
 	"os"

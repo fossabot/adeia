@@ -1,6 +1,9 @@
 package controller
 
 import (
+	"adeia-api/internal/model"
+	"adeia-api/internal/repository"
+	log "adeia-api/internal/utils/logger"
 	"fmt"
 	"net/http"
 
@@ -10,4 +13,23 @@ import (
 // Index is a simple handler that writes a welcome message.
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	_, _ = fmt.Fprint(w, "Welcome\n")
+}
+
+// Index2 is a handler to test db access.
+func Index2(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	repo := repository.NewPGUserRepo()
+
+	user := model.NewUser("test", "example@example1.com")
+
+	err := repo.Insert(user)
+	if err != nil {
+		log.Debugf("error inserting user: %v", err)
+	}
+	log.Debug("successfully inserted")
+
+	s, err := repo.GetByEmpID(user.EmployeeID)
+	if err != nil {
+		log.Debugf("error selecting user: %v", err)
+	}
+	log.Debugf("retrieved user: %+v", s)
 }

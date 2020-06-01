@@ -16,6 +16,9 @@ var initConf = new(sync.Once)
 
 func setEnvOverrides() {
 	viper.SetEnvPrefix(utils.EnvPrefix)
+
+	// The only error that is returned from this method is when len(input) == 0.
+	// So we can safely ignore them.
 	_ = viper.BindEnv("database.dbname", utils.EnvDBNameKey)
 	_ = viper.BindEnv("database.user", utils.EnvDBUserKey)
 	_ = viper.BindEnv("database.password", utils.EnvDBPasswordKey)
