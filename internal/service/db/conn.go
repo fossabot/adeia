@@ -2,6 +2,8 @@ package db
 
 import (
 	log "adeia-api/internal/utils/logger"
+	"context"
+	"database/sql"
 	"errors"
 	"sync"
 
@@ -19,8 +21,6 @@ type DB struct {
 var (
 	// dbConn is the db connection instance.
 	dbConn *DB
-	// data-source name
-	dsn string
 	// initConn is used to ensure that dbConn is initialized only once.
 	initConn = new(sync.Once)
 )
@@ -31,8 +31,9 @@ func Init() error {
 
 	initConn.Do(func() {
 		err = nil
-		dsn = buildDSN()
-		c, e := newConn(config.GetString("database.driver"))
+		dsn := buildDSN()
+		driver := config.GetString("database.driver")
+		c, e := newConn(driver, dsn)
 		if e != nil {
 			err = e
 			return
@@ -54,7 +55,13 @@ func GetConn() *DB {
 	return dbConn
 }
 
-func newConn(driver string) (*sqlx.DB, error) {
+// SetConn sets the connection instance.
+func SetConn(d *DB) {
+	dbConn = d
+}
+
+// newConn creates a new connection instance.
+func newConn(driver, dsn string) (*sqlx.DB, error) {
 	db, err := sqlx.Connect(driver, dsn)
 	if err != nil {
 		return nil, err
@@ -63,6 +70,7 @@ func newConn(driver string) (*sqlx.DB, error) {
 	return db, nil
 }
 
+// buildDSN is a helper to build the DSN string.
 func buildDSN() string {
 	// helper to get config
 	getConfig := func(k string) string {
@@ -97,4 +105,24 @@ func buildDSN() string {
 	}
 
 	return dsn
+}
+
+// NamedExec wraps sqlx.DB's NamedExec.
+func NamedExec(query string, arg interface{}) (sql.Result, error) {
+	return dbConn.NamedExec(query, arg)
+}
+
+// NamedExecContext wraps sqlx.DB's NamedExecContext.
+func NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error) {
+	return dbConn.NamedExecContext(ctx, query, arg)
+}
+
+// Get wraps sqlx.DB's Get.
+func Get(dest interface{}, query string, args ...interface{}) error {
+	return dbConn.Get(dest, query, args...)
+}
+
+// GetContext wraps sqlx.DB's GetContext.
+func GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	return dbConn.GetContext(ctx, dest, query, args...)
 }

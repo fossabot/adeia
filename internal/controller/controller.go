@@ -15,9 +15,9 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	_, _ = fmt.Fprint(w, "Welcome\n")
 }
 
-// Index2 is a handler to test db access.
-func Index2(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	repo := repository.NewPGUserRepo()
+// SampleRoute is a handler to test db access.
+func SampleRoute(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	repo := repository.NewUserRepo()
 
 	user := model.NewUser("test", "example@example1.com")
 

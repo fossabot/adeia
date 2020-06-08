@@ -12,33 +12,30 @@ const (
 	queryUserByEmpID = "SELECT * FROM users WHERE employee_id=$1"
 )
 
-// PGUserRepo is an implementation of UserRepo for Postgres.
-type PGUserRepo struct {
-	conn *db.DB
-}
+// UserRepoImpl is an implementation of UserRepo for Postgres.
+type UserRepoImpl struct{}
 
-// NewPGUserRepo creates a new PGUserRepo.
-func NewPGUserRepo() UserRepo {
-	c := db.GetConn()
-	return &PGUserRepo{c}
+// NewUserRepo creates a new UserRepoImpl.
+func NewUserRepo() UserRepo {
+	return &UserRepoImpl{}
 }
 
 // InsertWithTx inserts a user using the provided transaction.
-func (p *PGUserRepo) InsertWithTx(tx *sqlx.Tx, u *model.User) error {
+func (p *UserRepoImpl) InsertWithTx(tx *sqlx.Tx, u *model.User) error {
 	_, err := tx.NamedExec(queryUserInsert, u)
 	return err
 }
 
 // Insert inserts a user using the db connection instance.
-func (p *PGUserRepo) Insert(u *model.User) error {
-	_, err := p.conn.NamedExec(queryUserInsert, u)
+func (p *UserRepoImpl) Insert(u *model.User) error {
+	_, err := db.NamedExec(queryUserInsert, u)
 	return err
 }
 
 // GetByEmpID gets a user from db using the empId.
-func (p *PGUserRepo) GetByEmpID(empID string) (*model.User, error) {
+func (p *UserRepoImpl) GetByEmpID(empID string) (*model.User, error) {
 	u := model.User{}
-	err := p.conn.Get(&u, queryUserByEmpID, empID)
+	err := db.Get(&u, queryUserByEmpID, empID)
 	if err != nil {
 		return nil, err
 	}
