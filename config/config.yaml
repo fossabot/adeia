@@ -4,3 +4,8 @@ server:
 
 logger:
   level: debug
+
+cache:
+  network: tcp
+  addr: 127.0.0.1:6379
+  connsize: 10

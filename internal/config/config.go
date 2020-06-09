@@ -34,6 +34,8 @@ func LoadConf() error {
 		viper.SetConfigType("yaml")
 		viper.SetEnvPrefix("adeia")
 
+		// TODO: add env overrides for cache
+
 		e := viper.ReadInConfig()
 		if e != nil {
 			err = e
