@@ -12,10 +12,18 @@ import (
 )
 
 // initConf is used to ensure that config is initialized only once.
-var initConf *sync.Once
+var initConf = new(sync.Once)
 
-func init() {
-	initConf = new(sync.Once)
+func setEnvOverrides() {
+	viper.SetEnvPrefix(utils.EnvPrefix)
+
+	// The only error that is returned from this method is when len(input) == 0.
+	// So we can safely ignore them.
+	_ = viper.BindEnv("database.dbname", utils.EnvDBNameKey)
+	_ = viper.BindEnv("database.user", utils.EnvDBUserKey)
+	_ = viper.BindEnv("database.password", utils.EnvDBPasswordKey)
+	_ = viper.BindEnv("database.host", utils.EnvDBHostKey)
+	_ = viper.BindEnv("database.port", utils.EnvDBPortKey)
 }
 
 // LoadConf loads YAML from file specified by EnvConfPathKey into viper.
@@ -32,7 +40,7 @@ func LoadConf() error {
 		viper.SetConfigName(strings.TrimSuffix(base, filepath.Ext(base)))
 		viper.AddConfigPath(filepath.Dir(confPath))
 		viper.SetConfigType("yaml")
-		viper.SetEnvPrefix("adeia")
+		setEnvOverrides()
 
 		e := viper.ReadInConfig()
 		if e != nil {

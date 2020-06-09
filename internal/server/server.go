@@ -1,7 +1,7 @@
 package server
 
 import (
-	"adeia-api/internal/controllers"
+	"adeia-api/internal/controller"
 	log "adeia-api/internal/utils/logger"
 	"net/http"
 
@@ -25,7 +25,7 @@ func NewAPIServer() *APIServer {
 // TODO: properly fix this
 func (a *APIServer) AddRoutes() {
 	log.Debug("registering handles to router")
-	a.Srv.GET("/", controllers.Index)
+	a.Srv.GET("/", controller.Index)
 }
 
 // Serve starts the server on the host and port, specified in the config.
