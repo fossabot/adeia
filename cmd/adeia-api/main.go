@@ -3,6 +3,7 @@ package main
 import (
 	"adeia-api/internal/config"
 	"adeia-api/internal/server"
+	"adeia-api/internal/service/db"
 	log "adeia-api/internal/utils/logger"
 	"fmt"
 	"os"
@@ -27,6 +28,15 @@ func main() {
 	}
 	defer func() {
 		_ = log.Sync()
+	}()
+
+	// init db connection
+	err = db.Init()
+	if err != nil {
+		log.Panicf("cannot initialize connection to db: %v", err)
+	}
+	defer func() {
+		_ = db.Close()
 	}()
 
 	// start serving
