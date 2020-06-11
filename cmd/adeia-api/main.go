@@ -4,6 +4,7 @@ import (
 	"adeia-api/internal/config"
 	"adeia-api/internal/server"
 	"adeia-api/internal/service/cache"
+	"adeia-api/internal/service/db"
 	log "adeia-api/internal/utils/logger"
 	"fmt"
 	"os"
@@ -26,7 +27,6 @@ func main() {
 	if err != nil {
 		onError("cannot initialize logger", err)
 	}
-
 	defer func() {
 		_ = log.Sync()
 	}()
@@ -36,6 +36,15 @@ func main() {
 	if err != nil {
 		log.Warnf("cannot initialize cache: %v\nrunning in cache-less mode", err)
 	}
+
+	// init db connection
+	err = db.Init()
+	if err != nil {
+		log.Panicf("cannot initialize connection to db: %v", err)
+	}
+	defer func() {
+		_ = db.Close()
+	}()
 
 	// start serving
 	apiServer := server.NewAPIServer()

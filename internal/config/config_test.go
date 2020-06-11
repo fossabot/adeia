@@ -98,7 +98,7 @@ func TestGetEnv(t *testing.T) {
 		want := "foo"
 		got := getEnv("DUMMY_KEY", "bar")
 
-		assert.Equal(t, got, want, "should return value from env if key is set")
+		assert.Equal(t, want, got, "should return value from env if key is set")
 	})
 
 	_ = os.Unsetenv("DUMMY_KEY")
@@ -107,6 +107,6 @@ func TestGetEnv(t *testing.T) {
 		want := "bar"
 		got := getEnv("DUMMY_KEY", "bar")
 
-		assert.Equal(t, got, want, "should return fallback if key is not set")
+		assert.Equal(t, want, got, "should return fallback if key is not set")
 	})
 }

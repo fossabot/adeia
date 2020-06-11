@@ -15,7 +15,7 @@ func TestParseLevel(t *testing.T) {
 
 		got, err := parseLevel("info")
 		assert.Nil(t, err, "should not return error when string is valid")
-		assert.Equal(t, got, want, "should return correct level")
+		assert.Equal(t, want, got, "should return correct level")
 	})
 
 	t.Run("should return error when string is invalid", func(t *testing.T) {
@@ -49,5 +49,5 @@ func TestSet(t *testing.T) {
 	SetLogger(want)
 	got := logger.SugaredLogger
 
-	assert.Equal(t, got, want, "should return the logger set using `set`")
+	assert.Equal(t, want, got, "should return the logger set using `set`")
 }
