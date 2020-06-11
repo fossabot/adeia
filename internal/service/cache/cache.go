@@ -56,6 +56,11 @@ func Set(key string, value string) error {
 	return do(radix.Cmd(nil, "SET", key, value))
 }
 
+// Delete deletes the list of keys.
+func Delete(keys ...string) error {
+	return do(radix.Cmd(nil, "DEL", keys...))
+}
+
 // do is a wrapper on the pool.Do func. All cache functions hit this method.
 // This enables a fall-through to the database, when cache is unavailable.
 func do(cmd radix.CmdAction) error {
