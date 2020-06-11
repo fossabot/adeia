@@ -19,11 +19,18 @@ func setEnvOverrides() {
 
 	// The only error that is returned from this method is when len(input) == 0.
 	// So we can safely ignore them.
+
+	// database env overrides
 	_ = viper.BindEnv("database.dbname", utils.EnvDBNameKey)
 	_ = viper.BindEnv("database.user", utils.EnvDBUserKey)
 	_ = viper.BindEnv("database.password", utils.EnvDBPasswordKey)
 	_ = viper.BindEnv("database.host", utils.EnvDBHostKey)
 	_ = viper.BindEnv("database.port", utils.EnvDBPortKey)
+
+	// cache env overrides
+	_ = viper.BindEnv("cache.network", utils.EnvCacheNetworkKey)
+	_ = viper.BindEnv("cache.addr", utils.EnvCacheAddrKey)
+	_ = viper.BindEnv("cache.connsize", utils.EnvCacheConnsizeKey)
 }
 
 // LoadConf loads YAML from file specified by EnvConfPathKey into viper.
@@ -41,8 +48,6 @@ func LoadConf() error {
 		viper.AddConfigPath(filepath.Dir(confPath))
 		viper.SetConfigType("yaml")
 		setEnvOverrides()
-
-		// TODO: add env overrides for cache
 
 		e := viper.ReadInConfig()
 		if e != nil {
