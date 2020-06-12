@@ -11,26 +11,34 @@ import (
 	"github.com/spf13/viper"
 )
 
-// initConf is used to ensure that config is initialized only once.
-var initConf = new(sync.Once)
+var (
+	// initConf is used to ensure that config is initialized only once.
+	initConf = new(sync.Once)
+
+	// envOverrides holds all environment value keys for overriding the config.
+	envOverrides = map[string]string{
+		// database env overrides
+		"database.dbname":   utils.EnvDBNameKey,
+		"database.user":     utils.EnvDBUserKey,
+		"database.password": utils.EnvDBPasswordKey,
+		"database.host":     utils.EnvDBHostKey,
+		"database.port":     utils.EnvDBPortKey,
+
+		// cache env overrides
+		"cache.network":  utils.EnvCacheNetworkKey,
+		"cache.host":     utils.EnvCacheHostKey,
+		"cache.port":     utils.EnvCachePortKey,
+		"cache.connsize": utils.EnvCacheConnsizeKey,
+	}
+)
 
 func setEnvOverrides() {
 	viper.SetEnvPrefix(utils.EnvPrefix)
-
-	// The only error that is returned from this method is when len(input) == 0.
-	// So we can safely ignore them.
-
-	// database env overrides
-	_ = viper.BindEnv("database.dbname", utils.EnvDBNameKey)
-	_ = viper.BindEnv("database.user", utils.EnvDBUserKey)
-	_ = viper.BindEnv("database.password", utils.EnvDBPasswordKey)
-	_ = viper.BindEnv("database.host", utils.EnvDBHostKey)
-	_ = viper.BindEnv("database.port", utils.EnvDBPortKey)
-
-	// cache env overrides
-	_ = viper.BindEnv("cache.network", utils.EnvCacheNetworkKey)
-	_ = viper.BindEnv("cache.addr", utils.EnvCacheAddrKey)
-	_ = viper.BindEnv("cache.connsize", utils.EnvCacheConnsizeKey)
+	for k, v := range envOverrides {
+		// The only error that is returned from this method is when len(input) == 0.
+		// So we can safely ignore it.
+		_ = viper.BindEnv(k, v)
+	}
 }
 
 // LoadConf loads YAML from file specified by EnvConfPathKey into viper.

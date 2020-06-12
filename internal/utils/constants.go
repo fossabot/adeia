@@ -33,7 +33,10 @@ const (
 	EnvCacheNetworkKey = EnvPrefix + "_CACHE_NETWORK"
 
 	// EnvCacheAddrKey is the env key for redis address.
-	EnvCacheAddrKey = EnvPrefix + "_CACHE_ADDR"
+	EnvCacheHostKey = EnvPrefix + "_CACHE_HOST"
+
+	// EnvCacheAddrKey is the env key for redis address.
+	EnvCachePortKey = EnvPrefix + "_CACHE_PORT"
 
 	// EnvCacheConnsizeKey is the env key for redis connection pool size.
 	EnvCacheConnsizeKey = EnvPrefix + "_CACHE_CONNSIZE"

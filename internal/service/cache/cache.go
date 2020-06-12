@@ -26,9 +26,10 @@ func Init() error {
 
 	initCache.Do(func() {
 		err = nil
+		addr := config.GetString("cache.host") + ":" + config.GetString("cache.port")
 		p, e := radix.NewPool(
 			config.GetString("cache.network"),
-			config.GetString("cache.addr"),
+			addr,
 			config.GetInt("cache.connsize"),
 		)
 		if e != nil {
