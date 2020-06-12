@@ -5,6 +5,12 @@ server:
 logger:
   level: debug
 
+cache:
+  network: tcp
+  host: 127.0.0.1
+  port: 6379
+  connsize: 10
+
 database:
   driver: postgres
   dbname: test

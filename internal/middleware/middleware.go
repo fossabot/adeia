@@ -31,7 +31,7 @@ func (c *FuncChain) Compose(f http.Handler) http.Handler {
 
 // Append appends the passed-in funcs to the existing middleware chain.
 func (c *FuncChain) Append(funcs ...Func) FuncChain {
-	newChain := make([]Func, 0, len(c.funcs) + len(funcs))
+	newChain := make([]Func, 0, len(c.funcs)+len(funcs))
 	newChain = append(newChain, c.funcs...)
 	newChain = append(newChain, funcs...)
 

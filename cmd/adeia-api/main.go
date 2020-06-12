@@ -3,6 +3,7 @@ package main
 import (
 	"adeia-api/internal/config"
 	"adeia-api/internal/server"
+	"adeia-api/internal/service/cache"
 	"adeia-api/internal/service/db"
 	log "adeia-api/internal/utils/logger"
 	"fmt"
@@ -28,6 +29,15 @@ func main() {
 	}
 	defer func() {
 		_ = log.Sync()
+	}()
+
+	// init cache
+	err = cache.Init()
+	if err != nil {
+		log.Warnf("cannot initialize cache: %v\nrunning in cache-less mode", err)
+	}
+	defer func() {
+		_ = cache.Close()
 	}()
 
 	// init db connection

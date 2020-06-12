@@ -7,6 +7,7 @@ const (
 	// ==========
 	// Keys of env variables to override config from config.yaml
 	// ==========
+	// Database (Postgres) keys
 
 	// EnvConfPathKey is the env key for confPath.
 	EnvConfPathKey = EnvPrefix + "_CONF_PATH"
@@ -25,4 +26,18 @@ const (
 
 	// EnvDBPortKey is the env key for database port.
 	EnvDBPortKey = EnvPrefix + "_DB_PORT"
+
+	// Cache keys
+
+	// EnvCacheNetworkKey is the env key for redis network.
+	EnvCacheNetworkKey = EnvPrefix + "_CACHE_NETWORK"
+
+	// EnvCacheHostKey is the env key for redis host.
+	EnvCacheHostKey = EnvPrefix + "_CACHE_HOST"
+
+	// EnvCachePortKey is the env key for redis port.
+	EnvCachePortKey = EnvPrefix + "_CACHE_PORT"
+
+	// EnvCacheConnsizeKey is the env key for redis connection pool size.
+	EnvCacheConnsizeKey = EnvPrefix + "_CACHE_CONNSIZE"
 )
