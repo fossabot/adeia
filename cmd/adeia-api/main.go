@@ -36,6 +36,9 @@ func main() {
 	if err != nil {
 		log.Warnf("cannot initialize cache: %v\nrunning in cache-less mode", err)
 	}
+	defer func() {
+		_ = cache.Close()
+	}()
 
 	// init db connection
 	err = db.Init()

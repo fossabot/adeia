@@ -36,10 +36,27 @@ func Init() error {
 			err = e
 			return
 		}
+
+		// ping
+		pong := ""
+		e = p.Do(radix.Cmd(&pong, "PING"))
+		if e != nil {
+			err = e
+			return
+		} else if pong != "PONG" {
+			err = errors.New("Expected: PONG. Received: " + pong)
+			return
+		}
+
 		pool = &Cache{p}
 	})
 
 	return err
+}
+
+// Close closes the cache connection.
+func Close() error {
+	return pool.Close()
 }
 
 // Get gets the value of the specified key.
