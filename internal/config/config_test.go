@@ -1,11 +1,12 @@
 package config
 
 import (
-	"adeia-api/internal/utils"
 	"io/ioutil"
 	"os"
 	"sync"
 	"testing"
+
+	"adeia-api/internal/utils"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -64,7 +65,7 @@ logger:
 		want.Set("logger.level", "info")
 
 		_ = os.Setenv(utils.EnvConfPathKey, validConfFile.Name())
-		err := LoadConf()
+		err := Load()
 		got := viper.GetViper()
 
 		assert.Nil(t, err, "should not return error when config is valid")
@@ -78,7 +79,7 @@ logger:
 
 	t.Run("should return error when file is nonexistent", func(t *testing.T) {
 		_ = os.Setenv(utils.EnvConfPathKey, "/tmp/foo")
-		err := LoadConf()
+		err := Load()
 		assert.Error(t, err, "should return error when file does not exist")
 	})
 
@@ -86,7 +87,7 @@ logger:
 
 	t.Run("should return error when yaml is invalid", func(t *testing.T) {
 		_ = os.Setenv(utils.EnvConfPathKey, invalidConfFile.Name())
-		err := LoadConf()
+		err := Load()
 		assert.Error(t, err, "should return error when yaml is invalid")
 	})
 }

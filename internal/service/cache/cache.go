@@ -1,10 +1,11 @@
 package cache
 
 import (
-	log "adeia-api/internal/utils/logger"
 	"errors"
 	"strconv"
 	"sync"
+
+	log "adeia-api/internal/utils/logger"
 
 	"github.com/mediocregopher/radix/v3"
 	config "github.com/spf13/viper"
@@ -22,7 +23,7 @@ var (
 
 // Init creates a new cache connection.
 func Init() error {
-	err := errors.New("")
+	err := errors.New("cache already initialized")
 
 	initCache.Do(func() {
 		err = nil
@@ -44,7 +45,7 @@ func Init() error {
 			err = e
 			return
 		} else if pong != "PONG" {
-			err = errors.New("Expected: PONG. Received: " + pong)
+			err = errors.New("expected: PONG. received: " + pong)
 			return
 		}
 
@@ -56,6 +57,9 @@ func Init() error {
 
 // Close closes the cache connection.
 func Close() error {
+	if pool == nil {
+		return nil
+	}
 	return pool.Close()
 }
 
@@ -83,8 +87,8 @@ func Delete(keys ...string) error {
 // This enables a fall-through to the database, when cache is unavailable.
 func do(cmd radix.CmdAction) error {
 	if pool == nil {
-		msg := "cache pool not initialized"
-		log.Warn(msg)
+		msg := "cache not initialized/unavailable"
+		log.Debug(msg)
 		return errors.New(msg)
 	}
 	return pool.Do(cmd)

@@ -1,12 +1,14 @@
 package config
 
 import (
-	"adeia-api/internal/utils"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"adeia-api/internal/utils"
 
 	"github.com/spf13/viper"
 )
@@ -41,25 +43,25 @@ func setEnvOverrides() {
 	}
 }
 
-// LoadConf loads YAML from file specified by EnvConfPathKey into viper.
+// Load loads YAML from file specified by EnvConfPathKey into viper.
 // The file must be a readable file containing valid YAML.
-func LoadConf() error {
+func Load() error {
 	err := errors.New("config already loaded")
 
 	initConf.Do(func() {
 		err = nil
 
 		confPath := getEnv(utils.EnvConfPathKey, "./config/config.yaml")
-		base := filepath.Base(confPath)
+		basePath := filepath.Base(confPath)
 
-		viper.SetConfigName(strings.TrimSuffix(base, filepath.Ext(base)))
+		viper.SetConfigName(strings.TrimSuffix(basePath, filepath.Ext(basePath)))
 		viper.AddConfigPath(filepath.Dir(confPath))
 		viper.SetConfigType("yaml")
 		setEnvOverrides()
 
 		e := viper.ReadInConfig()
 		if e != nil {
-			err = e
+			err = fmt.Errorf("cannot read config: %v", e)
 			return
 		}
 	})

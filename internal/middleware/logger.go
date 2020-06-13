@@ -1,8 +1,9 @@
 package middleware
 
 import (
-	log "adeia-api/internal/utils/logger"
 	"net/http"
+
+	log "adeia-api/internal/utils/logger"
 )
 
 // Logger is a simple middleware that logs the URL.Path of every request.

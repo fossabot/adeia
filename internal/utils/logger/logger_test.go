@@ -28,7 +28,7 @@ func TestInit(t *testing.T) {
 	t.Run("should not return any error when config is valid", func(t *testing.T) {
 		config.Set("logger.level", "debug")
 
-		err := InitLogger()
+		err := Init()
 		assert.Nil(t, err, "should not return any error when config is valid")
 	})
 
@@ -38,7 +38,7 @@ func TestInit(t *testing.T) {
 	t.Run("should return error when config is invalid", func(t *testing.T) {
 		config.Set("logger.level", "debug123")
 
-		err := InitLogger()
+		err := Init()
 		assert.Error(t, err, "should return error when config is invalid")
 	})
 }
@@ -46,7 +46,7 @@ func TestInit(t *testing.T) {
 func TestSet(t *testing.T) {
 	want := zap.NewExample().Sugar()
 
-	SetLogger(want)
+	Set(want)
 	got := logger.SugaredLogger
 
 	assert.Equal(t, want, got, "should return the logger set using `set`")

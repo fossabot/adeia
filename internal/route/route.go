@@ -1,8 +1,9 @@
 package route
 
 import (
-	"adeia-api/internal/middleware"
 	"net/http"
+
+	"adeia-api/internal/middleware"
 
 	"github.com/julienschmidt/httprouter"
 )

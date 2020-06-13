@@ -1,10 +1,11 @@
 package controller
 
 import (
-	"adeia-api/internal/middleware"
-	"adeia-api/internal/route"
 	"fmt"
 	"net/http"
+
+	"adeia-api/internal/middleware"
+	"adeia-api/internal/route"
 )
 
 // IndexRoutes contains all of the route-info needed, to bind to the router.
