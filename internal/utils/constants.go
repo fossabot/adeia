@@ -29,15 +29,9 @@ const (
 
 	// Cache keys
 
-	// EnvCacheNetworkKey is the env key for redis network.
-	EnvCacheNetworkKey = EnvPrefix + "_CACHE_NETWORK"
-
 	// EnvCacheHostKey is the env key for redis host.
 	EnvCacheHostKey = EnvPrefix + "_CACHE_HOST"
 
 	// EnvCachePortKey is the env key for redis port.
 	EnvCachePortKey = EnvPrefix + "_CACHE_PORT"
-
-	// EnvCacheConnsizeKey is the env key for redis connection pool size.
-	EnvCacheConnsizeKey = EnvPrefix + "_CACHE_CONNSIZE"
 )
