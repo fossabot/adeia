@@ -33,8 +33,8 @@ var levels = map[string]zapcore.Level{
 	"fatal": zap.FatalLevel,
 }
 
-// InitLogger initializes a new logger instance based on config.
-func InitLogger() error {
+// Init initializes a new logger instance based on config.
+func Init() error {
 	err := errors.New("logger already initialized")
 
 	initLog.Do(func() {
@@ -75,8 +75,8 @@ func parseLevel(s string) (zapcore.Level, error) {
 	return l, nil
 }
 
-// SetLogger sets the logger.
-func SetLogger(l *zap.SugaredLogger) {
+// Set sets the logger.
+func Set(l *zap.SugaredLogger) {
 	logger.SugaredLogger = l
 }
 

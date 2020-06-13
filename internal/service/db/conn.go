@@ -1,15 +1,15 @@
 package db
 
 import (
-	log "adeia-api/internal/utils/logger"
 	"context"
 	"database/sql"
 	"errors"
 	"sync"
 
+	log "adeia-api/internal/utils/logger"
+
 	"github.com/jmoiron/sqlx"
-	// import postgres driver
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // import postgres driver
 	config "github.com/spf13/viper"
 )
 
@@ -43,21 +43,6 @@ func Init() error {
 	})
 
 	return err
-}
-
-// Close closes the connection.
-func Close() error {
-	return dbConn.Close()
-}
-
-// GetConn returns the connection instance.
-func GetConn() *DB {
-	return dbConn
-}
-
-// SetConn sets the connection instance.
-func SetConn(d *DB) {
-	dbConn = d
 }
 
 // newConn creates a new connection instance.
@@ -105,6 +90,21 @@ func buildDSN() string {
 	}
 
 	return dsn
+}
+
+// Close closes the connection.
+func Close() error {
+	return dbConn.Close()
+}
+
+// GetConn returns the connection instance.
+func GetConn() *DB {
+	return dbConn
+}
+
+// SetConn sets the connection instance.
+func SetConn(d *DB) {
+	dbConn = d
 }
 
 // NamedExec wraps sqlx.DB's NamedExec.
