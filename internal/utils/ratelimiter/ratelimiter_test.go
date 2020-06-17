@@ -67,6 +67,8 @@ func TestImpl_GetLimiter(t *testing.T) {
 	start := time.Now()
 	_ = rl.GetLimiter(ip)
 	sec := time.Since(start)
+
+	rl.mu.Lock()
 	assert.Equal(t, len(rl.visitors), 1, "should add ip to visitor map")
 	assert.Equal(
 		t,
@@ -75,10 +77,13 @@ func TestImpl_GetLimiter(t *testing.T) {
 		"should store proper lastSeen time",
 	)
 	assert.Contains(t, rl.visitors, ip, "ip should be present in the visitor map")
+	rl.mu.Unlock()
 
 	start = time.Now()
 	_ = rl.GetLimiter(ip)
 	sec = time.Since(start)
+
+	rl.mu.Lock()
 	assert.Equal(t, len(rl.visitors), 1, "should not new entry to visitor map if ip exists")
 	assert.Equal(
 		t,
@@ -86,9 +91,12 @@ func TestImpl_GetLimiter(t *testing.T) {
 		toMillisecond(start.Add(-1*sec)),
 		"should store proper lastSeen time",
 	)
+	rl.mu.Unlock()
 
 	_ = rl.GetLimiter("1.1.1.2")
+	rl.mu.Lock()
 	assert.Equal(t, len(rl.visitors), 2, "should add ip to visitor map")
+	rl.mu.Unlock()
 }
 
 func TestImpl_RunCleanup(t *testing.T) {
@@ -99,6 +107,8 @@ func TestImpl_RunCleanup(t *testing.T) {
 	_ = rl.GetLimiter(ip)
 
 	time.Sleep(time.Duration(duration+1) * time.Second)
+	rl.mu.Lock()
 	assert.Equal(t, 0, len(rl.visitors), "ip should not exist after window")
 	assert.NotContains(t, rl.visitors, ip, "ip should not exist after window")
+	rl.mu.Unlock()
 }
