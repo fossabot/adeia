@@ -11,10 +11,9 @@ import (
 // IndexRoutes contains all of the route-info needed, to bind to the router.
 // It returns a slice of routes that it is responsible for.
 func IndexRoutes() []*route.Route {
-	commonChain := middleware.NewChain(middleware.Logger)
 	routes := []*route.Route{
-		route.New(http.MethodGet, "/", Index, commonChain),
-		route.New(http.MethodGet, "/test", Index2, commonChain.Append(middleware.Logger2)),
+		route.New(http.MethodGet, "/", Index, middleware.Nil),
+		route.New(http.MethodGet, "/test", Index2, middleware.Nil),
 	}
 	return routes
 }
