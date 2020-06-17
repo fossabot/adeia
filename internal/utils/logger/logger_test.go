@@ -35,8 +35,18 @@ func TestInit(t *testing.T) {
 	// reset sync.Once because logger was already initialized in the previous test
 	initLog = new(sync.Once)
 
-	t.Run("should return error when config is invalid", func(t *testing.T) {
+	t.Run("should return error when level is invalid", func(t *testing.T) {
 		config.Set("logger.level", "debug123")
+
+		err := Init()
+		assert.Error(t, err, "should return error when level is invalid")
+	})
+
+	initLog = new(sync.Once)
+
+	t.Run("should return error when config is invalid", func(t *testing.T) {
+		config.Set("logger.level", "debug")
+		config.Set("logger.paths", []string{""})
 
 		err := Init()
 		assert.Error(t, err, "should return error when config is invalid")
@@ -46,6 +56,7 @@ func TestInit(t *testing.T) {
 func TestSet(t *testing.T) {
 	want := zap.NewExample().Sugar()
 
+	logger = &Logger{}
 	Set(want)
 	got := logger.SugaredLogger
 

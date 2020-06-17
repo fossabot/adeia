@@ -1,12 +1,14 @@
 server:
   host: ""                # empty string to listen on all interfaces
   port: 5000
-  ratelimit_rate: 5.0     # requests-per-second allowed per IP
+  ratelimit_rate: 10.0    # bucket refill rate
   ratelimit_burst: 10     # no. of requests allowed at a time
   ratelimit_window: 30    # in seconds
 
 logger:
   level: debug
+  paths:
+    - stdout
 
 cache:
   network: tcp

@@ -1,22 +1,27 @@
 package ratelimiter
 
 import (
-	config "github.com/spf13/viper"
 	"sync"
 	"time"
 
 	"golang.org/x/time/rate"
 )
 
-// A visitor represents a visitor that makes a request. Each visitor has their own
+// visitor represents a visitor that makes a request. Each visitor has their own
 // rate-limiter and lastSeen. The visitor is identified using the request IP.
 type visitor struct {
 	limiter  *rate.Limiter
 	lastSeen time.Time
 }
 
-// RateLimiter represents a rate-limiter.
-type RateLimiter struct {
+// RateLimiter is the interface for IP-based rate-limiting.
+type RateLimiter interface {
+	GetLimiter(ip string) *rate.Limiter
+	runCleanup()
+}
+
+// Impl represents a RateLimiter implementation.
+type Impl struct {
 	// map of visitors
 	visitors map[string]*visitor
 
@@ -28,60 +33,57 @@ type RateLimiter struct {
 
 	// no. of burst requests allowed at a time
 	b int
+
+	// how long a visitor can exist in the visitors map without making a request
+	cleanupWindow time.Duration
 }
 
-// NewRateLimiter returns a new RateLimiter with the specified params.
-func NewRateLimiter(r rate.Limit, b int) *RateLimiter {
-	rl := &RateLimiter{
-		visitors: make(map[string]*visitor),
-		mu:       &sync.RWMutex{},
-		r:        r,
-		b:        b,
+// New returns a new Impl with the specified params.
+func New(r rate.Limit, b int, d time.Duration) *Impl {
+	rl := &Impl{
+		visitors:      make(map[string]*visitor),
+		mu:            &sync.RWMutex{},
+		r:             r,
+		b:             b,
+		cleanupWindow: d,
 	}
 
 	// start the cleanup routine
-	rl.RunCleanup()
+	rl.runCleanup()
 	return rl
 }
 
-// AddIP adds the provided ip to the visitors map, marking lastSeen as time.Now().
-func (rl *RateLimiter) AddIP(ip string) *rate.Limiter {
+// GetLimiter returns the *rate.Limiter for the provided ip.
+func (rl *Impl) GetLimiter(ip string) *rate.Limiter {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
-	limiter := rate.NewLimiter(rl.r, rl.b)
-	rl.visitors[ip] = &visitor{limiter, time.Now()}
-	return limiter
-}
-
-// GetLimiter returns the *rate.Limiter for the provided ip.
-func (rl *RateLimiter) GetLimiter(ip string) *rate.Limiter {
-	rl.mu.Lock()
-
 	v, exists := rl.visitors[ip]
-	if !exists {
-		rl.mu.Unlock()
-		// ip does not exist, so add it to the map
-		return rl.AddIP(ip)
+	if exists {
+		// ip exists, update lastSeen
+		v.lastSeen = time.Now()
+		return v.limiter
 	}
 
-	// ip exists, update lastSeen
-	v.lastSeen = time.Now()
-	rl.mu.Unlock()
-	return v.limiter
+	// ip does not exist, so add it to visitors
+	rl.visitors[ip] = &visitor{
+		limiter:  rate.NewLimiter(rl.r, rl.b),
+		lastSeen: time.Now(),
+	}
+	return rl.visitors[ip].limiter
 }
 
-// RunCleanup is goroutine that regularly removes visitors who've not made a
-// request for a period of time, from the map.
-func (rl *RateLimiter) RunCleanup() {
+// runCleanup is goroutine that regularly removes visitors who've not made a
+// request for a `window` amount of time, from the map.
+func (rl *Impl) runCleanup() {
+	// TODO: optimize this
 	go func() {
 		for {
-			window := time.Duration(config.GetInt("server.ratelimit_window")) * time.Second
-			time.Sleep(window)
+			time.Sleep(rl.cleanupWindow)
 
 			rl.mu.Lock()
 			for ip, v := range rl.visitors {
-				if time.Since(v.lastSeen) > window {
+				if time.Since(v.lastSeen) > rl.cleanupWindow {
 					delete(rl.visitors, ip)
 				}
 			}

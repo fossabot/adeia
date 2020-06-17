@@ -24,7 +24,6 @@ import (
 type Server struct {
 	Srv              *httprouter.Router
 	GlobalMiddleware middleware.FuncChain
-	limiter          *ratelimiter.RateLimiter
 }
 
 // New returns a new Server with the passed-in config.
@@ -32,15 +31,15 @@ func New() *Server {
 	log.Debug("initializing new API server")
 
 	// create a new ratelimiter
-	l := ratelimiter.NewRateLimiter(
+	l := ratelimiter.New(
 		rate.Limit(config.GetFloat64("server.ratelimit_rate")),
 		config.GetInt("server.ratelimit_burst"),
+		time.Duration(config.GetInt("server.ratelimit_window"))*time.Second,
 	)
 
 	return &Server{
 		Srv:              httprouter.New(),
 		GlobalMiddleware: middleware.NewChain(middleware.RateLimiter(l)),
-		limiter:          l,
 	}
 }
 

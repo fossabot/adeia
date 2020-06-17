@@ -1,12 +1,13 @@
 package utils
 
 const (
-	// EnvPrefix is used as the prefix for all env variables related to adeia.
-	EnvPrefix = "ADEIA"
-
 	// ==========
 	// Keys of env variables to override config from config.yaml
 	// ==========
+
+	// EnvPrefix is used as the prefix for all env variables related to adeia.
+	EnvPrefix = "ADEIA"
+
 	// Database (Postgres) keys
 
 	// EnvConfPathKey is the env key for confPath.

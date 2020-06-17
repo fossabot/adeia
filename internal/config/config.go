@@ -49,7 +49,7 @@ func Load() error {
 	initConf.Do(func() {
 		err = nil
 
-		confPath := getEnv(utils.EnvConfPathKey, "./config/config.yaml")
+		confPath := getEnv(utils.EnvConfPathKey, "config/config.yaml")
 		basePath := filepath.Base(confPath)
 
 		viper.SetConfigName(strings.TrimSuffix(basePath, filepath.Ext(basePath)))
