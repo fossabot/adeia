@@ -31,9 +31,11 @@ func New() *Server {
 	log.Debug("initializing new API server")
 
 	// create a new ratelimiter
+	// when r = b = x, then user is allowed to make a max. of x requests per second
+	r := config.GetInt("server.ratelimit_rate")
 	l := ratelimiter.New(
-		rate.Limit(config.GetFloat64("server.ratelimit_rate")),
-		config.GetInt("server.ratelimit_burst"),
+		rate.Limit(r),
+		r,
 		time.Duration(config.GetInt("server.ratelimit_window"))*time.Second,
 	)
 
@@ -54,6 +56,7 @@ func (s *Server) Serve() {
 	addr := config.GetString("server.host") + ":" + config.GetString("server.port")
 	srv := &http.Server{
 		// TODO: add timeouts
+		// TODO: add TLS support
 		Addr:    addr,
 		Handler: s.GlobalMiddleware.Compose(s.Srv),
 	}
