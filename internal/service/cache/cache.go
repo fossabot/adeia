@@ -22,6 +22,7 @@ var (
 )
 
 // Init creates a new cache connection.
+// TODO: add cache auth
 func Init() error {
 	err := errors.New("cache already initialized")
 

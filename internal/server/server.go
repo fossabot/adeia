@@ -12,9 +12,11 @@ import (
 	"adeia-api/internal/middleware"
 	"adeia-api/internal/route"
 	log "adeia-api/internal/utils/logger"
+	"adeia-api/internal/utils/ratelimiter"
 
 	"github.com/julienschmidt/httprouter"
 	config "github.com/spf13/viper"
+	"golang.org/x/time/rate"
 )
 
 // Server is the struct that holds all of the components that need to be
@@ -27,7 +29,20 @@ type Server struct {
 // New returns a new Server with the passed-in config.
 func New() *Server {
 	log.Debug("initializing new API server")
-	return &Server{Srv: httprouter.New(), GlobalMiddleware: middleware.NewChain()}
+
+	// create a new ratelimiter
+	// when r = b = x, then user is allowed to make a max. of x requests per second
+	r := config.GetInt("server.ratelimit_rate")
+	l := ratelimiter.New(
+		rate.Limit(r),
+		r,
+		time.Duration(config.GetInt("server.ratelimit_window"))*time.Second,
+	)
+
+	return &Server{
+		Srv:              httprouter.New(),
+		GlobalMiddleware: middleware.NewChain(middleware.RateLimiter(l)),
+	}
 }
 
 // AddRoutes registers the handles to the router.
@@ -41,6 +56,7 @@ func (s *Server) Serve() {
 	addr := config.GetString("server.host") + ":" + config.GetString("server.port")
 	srv := &http.Server{
 		// TODO: add timeouts
+		// TODO: add TLS support
 		Addr:    addr,
 		Handler: s.GlobalMiddleware.Compose(s.Srv),
 	}

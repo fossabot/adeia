@@ -6,8 +6,6 @@ import (
 	"errors"
 	"sync"
 
-	log "adeia-api/internal/utils/logger"
-
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // import postgres driver
 	config "github.com/spf13/viper"
@@ -51,7 +49,6 @@ func newConn(driver, dsn string) (*sqlx.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("Successfully connected to database: " + driver)
 	return db, nil
 }
 

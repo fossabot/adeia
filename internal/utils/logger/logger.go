@@ -50,8 +50,8 @@ func Init() error {
 		// TODO: switch to custom config
 		cfg := zap.NewDevelopmentConfig()
 		cfg.Level = zap.NewAtomicLevelAt(level)
-		// TODO: set log output to a file
-		cfg.OutputPaths = []string{"stdout"}
+		// TODO: setup log rotation
+		cfg.OutputPaths = config.GetStringSlice("logger.paths")
 
 		// build logger from config
 		l, e := cfg.Build(zap.AddCallerSkip(1))
