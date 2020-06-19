@@ -2,6 +2,11 @@ package model
 
 import "github.com/dchest/uniuri"
 
+// declarations to generate employee ID
+var employeeIDChars = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+const employeeIDLength = 6
+
 // User represents the User model.
 type User struct {
 	// Id is a surrogate primary key that is auto-incremented by the database.
@@ -11,15 +16,18 @@ type User struct {
 	ID int `db:"id"`
 
 	// EmployeeId is a natural key used extensively throughout the system (in URIs, etc.).
-	// This field must be unique, short and user-rememberable (preferably 6-8 chars long).
-	// This field can change for an account, if needed.
+	// It must be unique, short and user-rememberable (preferably 6-8 chars long).
+	// It can change for an account, if needed.
 	EmployeeID string `db:"employee_id"`
 
-	// Name represents the name of the employee.
+	// Name represents the name of the user.
 	Name string `db:"name"`
 
-	// Email represents the name of the employee.
+	// Email represents the name of the user.
 	Email string `db:"email"`
+
+	// Password represents the hashed password of the user.
+	Password string `db:"password"`
 }
 
 // NewUser creates a new User.
@@ -30,11 +38,6 @@ func NewUser(name, email string) *User {
 		Email:      email,
 	}
 }
-
-// declarations to generate employee ID
-var employeeIDChars = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-
-const employeeIDLength = 6
 
 // generateEmployeeID generates a user-friendly alpha-numeric (upper-case letter)
 // employee ID.

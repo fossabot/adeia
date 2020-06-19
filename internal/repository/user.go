@@ -9,6 +9,7 @@ import (
 
 const (
 	queryUserInsert  = "INSERT INTO users (employee_id, name, email) VALUES (:employee_id, :name, :email)"
+	queryUserByID    = "SELECT * FROM users WHERE id=$1"
 	queryUserByEmpID = "SELECT * FROM users WHERE employee_id=$1"
 )
 
@@ -30,6 +31,16 @@ func (p *UserRepoImpl) InsertWithTx(tx *sqlx.Tx, u *model.User) error {
 func (p *UserRepoImpl) Insert(u *model.User) error {
 	_, err := db.NamedExec(queryUserInsert, u)
 	return err
+}
+
+// GetByID gets a user from db using the id.
+func (p *UserRepoImpl) GetByID(id int) (*model.User, error) {
+	u := model.User{}
+	err := db.Get(&u, queryUserByID, id)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
 }
 
 // GetByEmpID gets a user from db using the empId.

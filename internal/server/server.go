@@ -33,7 +33,9 @@ func New() *Server {
 // AddRoutes registers the handles to the router.
 func (s *Server) AddRoutes() {
 	log.Debug("registering handles to router")
+
 	route.BindRoutes(s.Srv, controller.IndexRoutes())
+	route.BindRoutes(s.Srv, controller.UserRoutes())
 }
 
 // Serve starts the server on the host and port, specified in the config.
