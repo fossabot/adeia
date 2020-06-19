@@ -27,10 +27,8 @@ var (
 		"database.port":     utils.EnvDBPortKey,
 
 		// cache env overrides
-		"cache.network":  utils.EnvCacheNetworkKey,
-		"cache.host":     utils.EnvCacheHostKey,
-		"cache.port":     utils.EnvCachePortKey,
-		"cache.connsize": utils.EnvCacheConnsizeKey,
+		"cache.host": utils.EnvCacheHostKey,
+		"cache.port": utils.EnvCachePortKey,
 	}
 )
 
@@ -51,12 +49,14 @@ func Load() error {
 	initConf.Do(func() {
 		err = nil
 
-		confPath := getEnv(utils.EnvConfPathKey, "./config/config.yaml")
+		confPath := getEnv(utils.EnvConfPathKey, "config/config.yaml")
 		basePath := filepath.Base(confPath)
 
 		viper.SetConfigName(strings.TrimSuffix(basePath, filepath.Ext(basePath)))
 		viper.AddConfigPath(filepath.Dir(confPath))
 		viper.SetConfigType("yaml")
+
+		// set env overrides for secrets
 		setEnvOverrides()
 
 		e := viper.ReadInConfig()

@@ -1,9 +1,13 @@
 server:
-  host: "" # empty string to listen on all interfaces
+  host: ""                # empty string to listen on all interfaces
   port: 5000
+  ratelimit_rate: 10      # no. of requests allowed per IP per second
+  ratelimit_window: 30    # (in seconds) cleanup window
 
 logger:
   level: debug
+  paths:
+    - stdout
 
 cache:
   network: tcp

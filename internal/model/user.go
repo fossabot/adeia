@@ -30,17 +30,17 @@ type User struct {
 	Password string `db:"password"`
 }
 
-// NewUser creates a new User.
-func NewUser(name, email string) *User {
+// New creates a new User.
+func New(name, email string) *User {
 	return &User{
-		EmployeeID: generateEmployeeID(),
+		EmployeeID: newEmpID(),
 		Name:       name,
 		Email:      email,
 	}
 }
 
-// generateEmployeeID generates a user-friendly alpha-numeric (upper-case letter)
-// employee ID.
-func generateEmployeeID() string {
+// newEmpID generates a user and URL-friendly alpha-numeric (upper-case letters
+// and numbers) employee ID.
+func newEmpID() string {
 	return uniuri.NewLenChars(employeeIDLength, employeeIDChars)
 }
