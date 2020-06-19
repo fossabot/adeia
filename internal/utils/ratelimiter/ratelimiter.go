@@ -39,11 +39,11 @@ type Impl struct {
 }
 
 // New returns a new Impl with the specified params.
-func New(r rate.Limit, b int, d time.Duration) *Impl {
+func New(r float64, b int, d time.Duration) *Impl {
 	rl := &Impl{
 		visitors:      make(map[string]*visitor),
 		mu:            &sync.RWMutex{},
-		r:             r,
+		r:             rate.Limit(r),
 		b:             b,
 		cleanupWindow: d,
 	}

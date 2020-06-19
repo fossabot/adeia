@@ -22,18 +22,20 @@ func Start() error {
 	defer log.Sync()
 
 	// init db connection
-	if err := db.Init(); err != nil {
+	dbConn, err := db.New()
+	if err != nil {
 		return fmt.Errorf("cannot initialize connection to db: %v", err)
 	}
-	defer db.Close()
+	defer dbConn.Close()
 
 	// init cache
-	if err := cache.Init(); err != nil {
+	cacheConn, err := cache.New()
+	if err != nil {
 		log.Warnf("cannot initialize cache: %v\nrunning in cache-less mode...", err)
 	}
-	defer cache.Close()
+	defer cacheConn.Close()
 
-	s := server.New()
+	s := server.New(dbConn, cacheConn)
 	s.AddRoutes()
 	// start serving
 	s.Serve()

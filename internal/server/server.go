@@ -11,37 +11,34 @@ import (
 	"adeia-api/internal/controller"
 	"adeia-api/internal/middleware"
 	"adeia-api/internal/route"
+	"adeia-api/internal/service/cache"
+	"adeia-api/internal/service/db"
 	log "adeia-api/internal/utils/logger"
 	"adeia-api/internal/utils/ratelimiter"
 
 	"github.com/julienschmidt/httprouter"
 	config "github.com/spf13/viper"
-	"golang.org/x/time/rate"
 )
 
 // Server is the struct that holds all of the components that need to be
 // injected.
 type Server struct {
-	Srv              *httprouter.Router
-	GlobalMiddleware middleware.FuncChain
+	cache            cache.Cache
+	db               db.DB
+	globalMiddleware middleware.FuncChain
+	srv              *httprouter.Router
 }
 
 // New returns a new Server with the passed-in config.
-func New() *Server {
+func New(d db.DB, c cache.Cache) *Server {
 	log.Debug("initializing new API server")
 
-	// create a new ratelimiter
-	// when r = b = x, then user is allowed to make a max. of x requests per second
-	r := config.GetInt("server.ratelimit_rate")
-	l := ratelimiter.New(
-		rate.Limit(r),
-		r,
-		time.Duration(config.GetInt("server.ratelimit_window"))*time.Second,
-	)
-
+	l := getGlobalRateLimiter()
 	return &Server{
-		Srv:              httprouter.New(),
-		GlobalMiddleware: middleware.NewChain(middleware.RateLimiter(l)),
+		srv:              httprouter.New(),
+		globalMiddleware: middleware.NewChain(middleware.RateLimiter(l)),
+		db:               d,
+		cache:            c,
 	}
 }
 
@@ -49,8 +46,8 @@ func New() *Server {
 func (s *Server) AddRoutes() {
 	log.Debug("registering handles to router")
 
-	route.BindRoutes(s.Srv, controller.IndexRoutes())
-	route.BindRoutes(s.Srv, controller.UserRoutes())
+	controller.Init(s.db, s.cache)
+	route.BindRoutes(s.srv, controller.UserRoutes())
 }
 
 // Serve starts the server on the host and port, specified in the config.
@@ -60,7 +57,7 @@ func (s *Server) Serve() {
 		// TODO: add timeouts
 		// TODO: add TLS support
 		Addr:    addr,
-		Handler: s.GlobalMiddleware.Compose(s.Srv),
+		Handler: s.globalMiddleware.Compose(s.srv),
 	}
 
 	go func() {
@@ -85,4 +82,17 @@ func (s *Server) Serve() {
 	} else {
 		log.Info("server gracefully stopped")
 	}
+}
+
+func getGlobalRateLimiter() ratelimiter.RateLimiter {
+	// create a new ratelimiter
+	// when r = b = x, then user is allowed to make a max. of x requests per second
+	r := config.GetInt("server.ratelimit_rate")
+	l := ratelimiter.New(
+		float64(r),
+		r,
+		time.Duration(config.GetInt("server.ratelimit_window"))*time.Second,
+	)
+
+	return l
 }

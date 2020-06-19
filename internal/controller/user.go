@@ -20,10 +20,10 @@ func CreateUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO: perform validation
 
-		// call service
-		_, err := usrSvc.CreateUser()
+		_, err := usrSvc.CreateUser("123")
 		if err != nil {
 			log.Errorf("cannot create new user: %v", err)
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		}
 	}
 }

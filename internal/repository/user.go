@@ -14,11 +14,13 @@ const (
 )
 
 // UserRepoImpl is an implementation of UserRepo for Postgres.
-type UserRepoImpl struct{}
+type UserRepoImpl struct {
+	db db.DB
+}
 
-// NewUserRepo creates a new UserRepoImpl.
-func NewUserRepo() UserRepo {
-	return &UserRepoImpl{}
+// NewUserRepo creates a new UserRepo.
+func NewUserRepo(d db.DB) UserRepo {
+	return &UserRepoImpl{d}
 }
 
 // InsertWithTx inserts a user using the provided transaction.
@@ -29,15 +31,14 @@ func (p *UserRepoImpl) InsertWithTx(tx *sqlx.Tx, u *model.User) error {
 
 // Insert inserts a user using the db connection instance.
 func (p *UserRepoImpl) Insert(u *model.User) error {
-	_, err := db.NamedExec(queryUserInsert, u)
+	_, err := p.db.NamedExec(queryUserInsert, u)
 	return err
 }
 
 // GetByID gets a user from db using the id.
 func (p *UserRepoImpl) GetByID(id int) (*model.User, error) {
 	u := model.User{}
-	err := db.Get(&u, queryUserByID, id)
-	if err != nil {
+	if err := p.db.Get(&u, queryUserByID, id); err != nil {
 		return nil, err
 	}
 	return &u, nil
@@ -46,8 +47,7 @@ func (p *UserRepoImpl) GetByID(id int) (*model.User, error) {
 // GetByEmpID gets a user from db using the empId.
 func (p *UserRepoImpl) GetByEmpID(empID string) (*model.User, error) {
 	u := model.User{}
-	err := db.Get(&u, queryUserByEmpID, empID)
-	if err != nil {
+	if err := p.db.Get(&u, queryUserByEmpID, empID); err != nil {
 		return nil, err
 	}
 	return &u, nil

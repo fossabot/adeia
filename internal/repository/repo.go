@@ -12,4 +12,5 @@ type UserRepo interface {
 	Insert(u *model.User) error
 	InsertWithTx(tx *sqlx.Tx, u *model.User) error
 	GetByEmpID(empID string) (*model.User, error)
+	GetByID(id int) (*model.User, error)
 }
