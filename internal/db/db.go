@@ -2,11 +2,13 @@ package db
 
 import (
 	"database/sql"
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // import postgres driver
 	config "github.com/spf13/viper"
 )
 
+// DB represents the funcs required for database access.
 type DB interface {
 	Get(dest interface{}, query string, args ...interface{}) error
 	NamedExec(query string, arg interface{}) (sql.Result, error)
@@ -29,10 +31,12 @@ func New() (DB, error) {
 	return &PostgresDB{d}, nil
 }
 
+// NamedExec wraps sqlx.DB's NamedExec.
 func (p *PostgresDB) NamedExec(query string, arg interface{}) (sql.Result, error) {
 	return p.DB.NamedExec(query, arg)
 }
 
+// Get wraps sqlx.DB's Get.
 func (p *PostgresDB) Get(dest interface{}, query string, args ...interface{}) error {
 	return p.DB.Get(dest, query, args...)
 }

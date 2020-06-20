@@ -3,11 +3,12 @@ package controller
 import (
 	"net/http"
 
-	"adeia-api/internal/middleware"
-	"adeia-api/internal/route"
-	log "adeia-api/internal/utils/logger"
+	"adeia-api/internal/api/middleware"
+	"adeia-api/internal/api/route"
+	log "adeia-api/internal/util/logger"
 )
 
+// UserRoutes returns a slice containing all user-related routes.
 func UserRoutes() []*route.Route {
 	routes := []*route.Route{
 		// create new user
@@ -16,6 +17,7 @@ func UserRoutes() []*route.Route {
 	return routes
 }
 
+// CreateUser creates a new user.
 func CreateUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO: perform validation

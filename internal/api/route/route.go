@@ -3,7 +3,7 @@ package route
 import (
 	"net/http"
 
-	"adeia-api/internal/middleware"
+	"adeia-api/internal/api/middleware"
 
 	"github.com/julienschmidt/httprouter"
 )

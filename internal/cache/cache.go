@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"strconv"
 
-	log "adeia-api/internal/utils/logger"
+	log "adeia-api/internal/util/logger"
 
 	"github.com/mediocregopher/radix/v3"
 	config "github.com/spf13/viper"
 )
 
+// Cache represents the funcs required to access a key-value store (like Redis).
 type Cache interface {
 	Get(rcv interface{}, key string) error
 	Set(key string, value string) error
@@ -67,6 +68,7 @@ func (r *RedisCache) SetWithExpiry(key string, value string, seconds int) error 
 	return r.do(radix.Cmd(nil, "SET", key, value, "EX", strconv.Itoa(seconds)))
 }
 
+// Close closes the connection pool.
 func (r *RedisCache) Close() error {
 	if !r.isAvailable() {
 		return nil

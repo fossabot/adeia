@@ -1,4 +1,4 @@
-package repository
+package repo
 
 import (
 	"adeia-api/internal/model"
@@ -7,7 +7,7 @@ import (
 )
 
 // UserRepo is an interface that represents the list of functions that need to be
-// implemented for the User model, by the repository.
+// implemented for the User model, by the repo.
 type UserRepo interface {
 	Insert(u *model.User) error
 	InsertWithTx(tx *sqlx.Tx, u *model.User) error

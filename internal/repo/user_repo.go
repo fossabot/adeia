@@ -1,8 +1,8 @@
-package repository
+package repo
 
 import (
+	"adeia-api/internal/db"
 	"adeia-api/internal/model"
-	"adeia-api/internal/service/db"
 
 	"github.com/jmoiron/sqlx"
 )

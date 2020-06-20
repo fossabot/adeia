@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"encoding/json"
@@ -14,15 +14,20 @@ import (
 // Obtained from https://www.alexedwards.net/blog/how-to-properly-parse-a-json-request-body,
 // released under MIT license.
 
+// MalformedRequest is a custom error interface for errors related to decoding
+// JSON body from requests.
 type MalformedRequest struct {
 	Status int
 	Msg    string
 }
 
+// Error returns the msg.
 func (mr *MalformedRequest) Error() string {
 	return mr.Msg
 }
 
+// DecodeJSONBody decodes a JSON request.Body into the provided interface
+// (usually a struct).
 func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	if r.Header.Get("Content-Type") != "" {
 		value, _ := header.ParseValueAndParams(r.Header, "Content-Type")
@@ -32,6 +37,7 @@ func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) err
 		}
 	}
 
+	// TODO: move to config
 	// 1 MB
 	r.Body = http.MaxBytesReader(w, r.Body, 1048576)
 
@@ -45,7 +51,10 @@ func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) err
 
 		switch {
 		case errors.As(err, &syntaxError):
-			msg := fmt.Sprintf("Request body contains badly-formed JSON (at position %d)", syntaxError.Offset)
+			msg := fmt.Sprintf(
+				"Request body contains badly-formed JSON (at position %d)",
+				syntaxError.Offset,
+			)
 			return &MalformedRequest{Status: http.StatusBadRequest, Msg: msg}
 
 		case errors.Is(err, io.ErrUnexpectedEOF):
@@ -53,7 +62,11 @@ func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) err
 			return &MalformedRequest{Status: http.StatusBadRequest, Msg: msg}
 
 		case errors.As(err, &unmarshalTypeError):
-			msg := fmt.Sprintf("Request body contains an invalid value for the %q field (at position %d)", unmarshalTypeError.Field, unmarshalTypeError.Offset)
+			msg := fmt.Sprintf(
+				"Request body contains an invalid value for the %q field (at position %d)",
+				unmarshalTypeError.Field,
+				unmarshalTypeError.Offset,
+			)
 			return &MalformedRequest{Status: http.StatusBadRequest, Msg: msg}
 
 		// There is an open issue regarding turning this into a sentinel error

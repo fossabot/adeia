@@ -4,25 +4,29 @@ import (
 	"errors"
 	"fmt"
 
+	"adeia-api/internal/cache"
+	"adeia-api/internal/db"
 	"adeia-api/internal/model"
-	"adeia-api/internal/repository"
-	"adeia-api/internal/service/cache"
-	"adeia-api/internal/service/db"
+	"adeia-api/internal/repo"
 )
 
+// Service contains all user-related business logic.
 type Service interface {
 	CreateUser(empID string) (*model.User, error)
 }
 
+// Impl is a Service implementation.
 type Impl struct {
-	usrRepo repository.UserRepo
+	usrRepo repo.UserRepo
 }
 
+// New creates a new Service.
 func New(d db.DB, c cache.Cache) Service {
-	u := repository.NewUserRepo(d)
+	u := repo.NewUserRepo(d)
 	return &Impl{u}
 }
 
+// CreateUser creates a new user.
 func (i *Impl) CreateUser(empID string) (*model.User, error) {
 	// check if user already exists
 	usr, err := i.usrRepo.GetByEmpID(empID)

@@ -3,10 +3,10 @@ package api
 import (
 	"fmt"
 
-	"adeia-api/internal/server"
-	"adeia-api/internal/service/cache"
-	"adeia-api/internal/service/db"
-	log "adeia-api/internal/utils/logger"
+	"adeia-api/internal/api/server"
+	"adeia-api/internal/cache"
+	"adeia-api/internal/db"
+	log "adeia-api/internal/util/logger"
 )
 
 // Start starts the API server.

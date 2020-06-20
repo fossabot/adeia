@@ -3,11 +3,11 @@ package middleware
 import (
 	"net/http"
 
-	log "adeia-api/internal/utils/logger"
-	"adeia-api/internal/utils/ratelimiter"
+	log "adeia-api/internal/util/logger"
+	"adeia-api/internal/util/ratelimiter"
 )
 
-// RateLimiter is a middleware that wraps the internal/utils/ratelimiter pkg.
+// RateLimiter is a middleware that wraps the internal/util/ratelimiter pkg.
 // It limits the requests-per-second, per IP, using the provided rate-limiter.
 // Preferably, it should be added to the global middleware.
 func RateLimiter(limiter ratelimiter.RateLimiter) Func {

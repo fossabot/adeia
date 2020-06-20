@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"adeia-api/internal/utils"
+	"adeia-api/internal/util"
 
 	"github.com/spf13/viper"
 )
@@ -20,20 +20,20 @@ var (
 	// envOverrides holds all environment value keys for overriding the config.
 	envOverrides = map[string]string{
 		// database env overrides
-		"database.dbname":   utils.EnvDBNameKey,
-		"database.user":     utils.EnvDBUserKey,
-		"database.password": utils.EnvDBPasswordKey,
-		"database.host":     utils.EnvDBHostKey,
-		"database.port":     utils.EnvDBPortKey,
+		"database.dbname":   util.EnvDBNameKey,
+		"database.user":     util.EnvDBUserKey,
+		"database.password": util.EnvDBPasswordKey,
+		"database.host":     util.EnvDBHostKey,
+		"database.port":     util.EnvDBPortKey,
 
 		// cache env overrides
-		"cache.host": utils.EnvCacheHostKey,
-		"cache.port": utils.EnvCachePortKey,
+		"cache.host": util.EnvCacheHostKey,
+		"cache.port": util.EnvCachePortKey,
 	}
 )
 
 func setEnvOverrides() {
-	viper.SetEnvPrefix(utils.EnvPrefix)
+	viper.SetEnvPrefix(util.EnvPrefix)
 	for k, v := range envOverrides {
 		// The only error that is returned from this method is when len(input) == 0.
 		// So we can safely ignore it.
@@ -49,7 +49,7 @@ func Load() error {
 	initConf.Do(func() {
 		err = nil
 
-		confPath := getEnv(utils.EnvConfPathKey, "config/config.yaml")
+		confPath := getEnv(util.EnvConfPathKey, "config/config.yaml")
 		basePath := filepath.Base(confPath)
 
 		viper.SetConfigName(strings.TrimSuffix(basePath, filepath.Ext(basePath)))
