@@ -16,7 +16,7 @@ cache:
   connsize: 10
 
 database:
-  driver: postgres        # only postgres will work as of now!
+  driver: pgx             # only pgx will work as of now!
   dbname: test
   user: dev
   password: password

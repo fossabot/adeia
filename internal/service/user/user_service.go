@@ -12,7 +12,7 @@ import (
 
 // Service contains all user-related business logic.
 type Service interface {
-	CreateUser(empID string) (*model.User, error)
+	CreateUser(name, email, empID, designation string) error
 }
 
 // Impl is a Service implementation.
@@ -27,29 +27,25 @@ func New(d db.DB, c cache.Cache) Service {
 }
 
 // CreateUser creates a new user.
-func (i *Impl) CreateUser(empID string) (*model.User, error) {
+func (i *Impl) CreateUser(name, email, empID, designation string) error {
 	// check if user already exists
-	usr, err := i.usrRepo.GetByEmpID(empID)
+	usr, err := i.usrRepo.GetByEmail(email)
 	if err != nil {
-		return nil, fmt.Errorf("cannot find existing user with provided empID: %v", err)
+		return fmt.Errorf("cannot find existing user with the provided email: %v", err)
 	}
-
 	if usr != nil {
-		return nil, errors.New("user already exists with provided empID")
+		return errors.New("user already exists with the provided email")
 	}
 
 	// user does not exist, so create one
 	u := &model.User{
-		EmployeeID: empID,
-		Name:       "",
-		Email:      "",
-		Password:   "",
+		EmployeeID:  empID,
+		Name:        name,
+		Email:       email,
+		Password:    "dummy",
+		Designation: designation,
+		IsActivated: false,
 	}
-	err = i.usrRepo.Insert(u)
-	if err != nil {
-		return nil, fmt.Errorf("cannot create new user: %v", err)
-	}
-
-	// successfully inserted user
-	return u, nil
+	_, err = i.usrRepo.Insert(u)
+	return err
 }

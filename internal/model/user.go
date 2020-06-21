@@ -28,6 +28,12 @@ type User struct {
 
 	// Password represents the hashed password of the user.
 	Password string `db:"password"`
+
+	// Designation represents the designation of the user.
+	Designation string `db:"designation"`
+
+	// IsActivated represents whether the user account is actived or not.
+	IsActivated bool `db:"is_activated"`
 }
 
 // New creates a new User.

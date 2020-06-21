@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"adeia-api/internal/api/middleware"
@@ -19,13 +20,36 @@ func UserRoutes() []*route.Route {
 
 // CreateUser creates a new user.
 func CreateUser() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO: perform validation
+	type createUserRequest struct {
+		Name        string `json:"name"`
+		EmployeeID  string `json:"employee_id"`
+		Email       string `json:"email"`
+		Designation string `json:"designation"`
+	}
 
-		_, err := usrSvc.CreateUser("123")
-		if err != nil {
-			log.Errorf("cannot create new user: %v", err)
+	type createUserResponse struct {
+		Location string `json:"location"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		// decode request body
+		var rBody createUserRequest
+		if err := json.NewDecoder(r.Body).Decode(&rBody); err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
 		}
+
+		// TODO: perform validation
+		// create user
+		if err := usrSvc.CreateUser(rBody.Name, rBody.Email, rBody.EmployeeID, rBody.Designation); err != nil {
+			log.Errorf("cannot create new user: %v", err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		resp := &createUserResponse{"http://api.example.com/v1/users/" + rBody.EmployeeID}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		_ = json.NewEncoder(w).Encode(resp)
 	}
 }

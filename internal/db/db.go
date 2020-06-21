@@ -3,8 +3,8 @@ package db
 import (
 	"database/sql"
 
+	_ "github.com/jackc/pgx/v4/stdlib" // import postgres driver
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq" // import postgres driver
 	config "github.com/spf13/viper"
 )
 
@@ -12,6 +12,8 @@ import (
 type DB interface {
 	Get(dest interface{}, query string, args ...interface{}) error
 	NamedExec(query string, arg interface{}) (sql.Result, error)
+	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
+	PrepareNamed(query string) (*sqlx.NamedStmt, error)
 	Close() error
 }
 
