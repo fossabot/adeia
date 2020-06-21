@@ -48,6 +48,7 @@ func (s *Server) AddRoutes() {
 
 	controller.Init(s.db, s.cache)
 	route.BindRoutes(s.srv, controller.UserRoutes())
+	route.BindRoutes(s.srv, controller.HolidayRoutes())
 }
 
 // Serve starts the server on the host and port, specified in the config.
