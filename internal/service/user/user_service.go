@@ -1,13 +1,12 @@
 package user
 
 import (
-	"errors"
-	"fmt"
-
 	"adeia-api/internal/cache"
 	"adeia-api/internal/db"
 	"adeia-api/internal/model"
 	"adeia-api/internal/repo"
+	"adeia-api/internal/util"
+	log "adeia-api/internal/util/logger"
 )
 
 // Service contains all user-related business logic.
@@ -31,10 +30,11 @@ func (i *Impl) CreateUser(name, email, empID, designation string) error {
 	// check if user already exists
 	usr, err := i.usrRepo.GetByEmail(email)
 	if err != nil {
-		return fmt.Errorf("cannot find existing user with the provided email: %v", err)
-	}
-	if usr != nil {
-		return errors.New("user already exists with the provided email")
+		log.Errorf("cannot find if an user already exists with the provided email: %v", err)
+		return util.ErrInternalServerError
+	} else if usr != nil {
+		log.Warnf("user already exists with the provided email %s", email)
+		return util.ErrResourceAlreadyExists
 	}
 
 	// user does not exist, so create one
@@ -46,6 +46,10 @@ func (i *Impl) CreateUser(name, email, empID, designation string) error {
 		Designation: designation,
 		IsActivated: false,
 	}
-	_, err = i.usrRepo.Insert(u)
-	return err
+	if _, err = i.usrRepo.Insert(u); err != nil {
+		log.Error("cannot create new user: %v", err)
+		return util.ErrInternalServerError
+	}
+
+	return nil
 }

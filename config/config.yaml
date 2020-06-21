@@ -1,8 +1,9 @@
 server:
-  host: ""                # empty string to listen on all interfaces
+  host: ""                        # empty string to listen on all interfaces
   port: 5000
-  ratelimit_rate: 10      # no. of requests allowed per IP per second
-  ratelimit_window: 30    # (in seconds) cleanup window
+  ratelimit_rate: 10              # no. of requests allowed per IP per second
+  ratelimit_window: 30            # (in seconds) cleanup window
+  max_request_body_size: 1048576  # max request body size (in bytes; default: 1MiB)
 
 logger:
   level: debug
@@ -16,7 +17,7 @@ cache:
   connsize: 10
 
 database:
-  driver: pgx             # only pgx will work as of now!
+  driver: pgx   # only pgx will work as of now!
   dbname: test
   user: dev
   password: password
