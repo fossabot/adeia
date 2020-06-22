@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/julienschmidt/httprouter"
 	"net/http"
 
 	"adeia-api/internal/api/middleware"
@@ -12,8 +13,23 @@ import (
 func UserRoutes() []*route.Route {
 	routes := []*route.Route{
 		route.New(http.MethodPost, "/users/", CreateUser(), middleware.Nil), // create new user
+		route.New(http.MethodGet, "/users/:id", GetUser(), middleware.Nil), // get user
 	}
 	return routes
+}
+
+func GetUser() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+
+		usr, err := usrSvc.GetUserByID(id)
+		if err != nil {
+			util.RespondWithError(w, err.(util.ResponseError))
+			return
+		}
+
+		util.RespondWithJSON(w, http.StatusOK, usr)
+	}
 }
 
 // CreateUser creates a new user.
@@ -23,10 +39,6 @@ func CreateUser() http.HandlerFunc {
 		EmployeeID  string `json:"employee_id"`
 		Email       string `json:"email"`
 		Designation string `json:"designation"`
-	}
-
-	type response struct {
-		Location string `json:"location"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -45,6 +57,6 @@ func CreateUser() http.HandlerFunc {
 
 		// return response
 		w.Header().Set("Location", "/v1/users/"+rBody.EmployeeID)
-		util.RespondWithJSON(w, http.StatusCreated, &struct{}{})
+		w.WriteHeader(http.StatusCreated)
 	}
 }

@@ -133,4 +133,9 @@ var (
 		StatusCode: http.StatusInternalServerError,
 		ErrorCode:  "INTERNAL_SERVER_ERROR",
 	}
+
+	ErrResourceNotFound = ResponseError{
+		StatusCode: http.StatusNotFound,
+		ErrorCode: "RESOURCE_NOT_FOUND",
+	}
 )

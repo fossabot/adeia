@@ -12,6 +12,7 @@ import (
 // Service contains all user-related business logic.
 type Service interface {
 	CreateUser(name, email, empID, designation string) error
+	GetUserByID(id string) (*model.User, error)
 }
 
 // Impl is a Service implementation.
@@ -52,4 +53,17 @@ func (i *Impl) CreateUser(name, email, empID, designation string) error {
 	}
 
 	return nil
+}
+
+func (i *Impl) GetUserByID(id string) (*model.User, error) {
+	usr, err := i.usrRepo.GetByEmpID(id)
+	if err != nil {
+		log.Errorf("cannot find user with the provided employee ID: %v", err)
+		return nil, util.ErrInternalServerError
+	} else if usr == nil {
+		log.Warnf("user does not exist for the provided employee ID %v", id)
+		return nil, util.ErrResourceNotFound
+	}
+
+	return usr, nil
 }

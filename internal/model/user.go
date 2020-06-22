@@ -13,27 +13,27 @@ type User struct {
 	// This has no meaning outside the database, except that it only identifies an account.
 	// This will never change for an account and all foreign keys must use this field.
 	// This should not be exposed outside.
-	ID int `db:"id"`
+	ID int `db:"id" json:"-"`
 
 	// EmployeeId is a natural key used extensively throughout the system (in URIs, etc.).
 	// It must be unique, short and user-rememberable (preferably 6-8 chars long).
 	// It can change for an account, if needed.
-	EmployeeID string `db:"employee_id"`
+	EmployeeID string `db:"employee_id" json:"employee_id"`
 
 	// Name represents the name of the user.
-	Name string `db:"name"`
+	Name string `db:"name" json:"name"`
 
 	// Email represents the name of the user.
-	Email string `db:"email"`
+	Email string `db:"email" json:"email"`
 
 	// Password represents the hashed password of the user.
-	Password string `db:"password"`
+	Password string `db:"password" json:"-"`
 
 	// Designation represents the designation of the user.
-	Designation string `db:"designation"`
+	Designation string `db:"designation" json:"designation"`
 
-	// IsActivated represents whether the user account is actived or not.
-	IsActivated bool `db:"is_activated"`
+	// IsActivated represents whether the user account is activated or not.
+	IsActivated bool `db:"is_activated" json:"is_activated"`
 }
 
 // New creates a new User.
