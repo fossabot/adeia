@@ -70,7 +70,7 @@ func (i *Impl) GetUserByEmpID(empID string) (*model.User, error) {
 		log.Errorf("cannot find user with the provided employee ID: %v", err)
 		return nil, util.ErrInternalServerError
 	} else if usr == nil {
-		log.Warnf("user does not exist for the provided employee ID %v", id)
+		log.Warnf("user does not exist for the provided employee ID %v", empID)
 		return nil, util.ErrResourceNotFound
 	}
 
