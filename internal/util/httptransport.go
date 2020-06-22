@@ -3,12 +3,13 @@ package util
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 
-	log "adeia-api/internal/util/logger"
+	"adeia-api/internal/util/log"
 
 	"github.com/golang/gddo/httputil/header"
 	config "github.com/spf13/viper"
@@ -16,12 +17,21 @@ import (
 
 // RespondWithError writes the provided ResponseError as a JSON response.
 func RespondWithError(w http.ResponseWriter, err ResponseError) {
-	o := &outputError{err}
-	RespondWithJSON(w, err.StatusCode, o)
+	o := &struct {
+		Error ResponseError `json:"error"`
+	}{err}
+	respond(w, err.StatusCode, o)
 }
 
 // RespondWithJSON writes the given payload as a JSON response.
 func RespondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
+	o := &struct {
+		Data interface{} `json:"data"`
+	}{payload}
+	respond(w, statusCode, o)
+}
+
+func respond(w http.ResponseWriter, statusCode int, payload interface{}) {
 	resp, err := json.Marshal(payload)
 	if err != nil {
 		log.Errorf("failed to marshal JSON response: %v", err)
@@ -68,10 +78,9 @@ func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) err
 
 		case errors.As(err, &unmarshalTypeError):
 			// invalid value for field
-			return ErrValidationFailed.ValidationErr(
+			return ErrValidationFailed.AddValidationErr(
 				unmarshalTypeError.Field,
-				ValidationInvalid,
-				"ValidationInvalid value for field",
+				fmt.Sprintf("Please enter a valid %v", unmarshalTypeError.Field),
 			)
 
 		// There is an open issue regarding turning this into a sentinel error

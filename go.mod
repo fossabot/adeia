@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
+	github.com/go-ozzo/ozzo-validation/v4 v4.2.1
 	github.com/golang/gddo v0.0.0-20200611223618-a4829ef13274
 	github.com/jackc/pgx/v4 v4.6.0
 	github.com/jmoiron/sqlx v1.2.0

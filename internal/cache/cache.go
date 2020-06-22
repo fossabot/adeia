@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	log "adeia-api/internal/util/logger"
+	"adeia-api/internal/util/log"
 
 	"github.com/mediocregopher/radix/v3"
 	config "github.com/spf13/viper"

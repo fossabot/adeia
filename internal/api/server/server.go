@@ -13,7 +13,7 @@ import (
 	"adeia-api/internal/cache"
 	"adeia-api/internal/controller"
 	"adeia-api/internal/db"
-	log "adeia-api/internal/util/logger"
+	"adeia-api/internal/util/log"
 	"adeia-api/internal/util/ratelimiter"
 
 	"github.com/julienschmidt/httprouter"

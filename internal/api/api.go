@@ -6,7 +6,7 @@ import (
 	"adeia-api/internal/api/server"
 	"adeia-api/internal/cache"
 	"adeia-api/internal/db"
-	log "adeia-api/internal/util/logger"
+	"adeia-api/internal/util/log"
 )
 
 // Start starts the API server.

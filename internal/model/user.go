@@ -37,16 +37,12 @@ type User struct {
 }
 
 // New creates a new User.
-func New(name, email string) *User {
-	return &User{
-		EmployeeID: newEmpID(),
-		Name:       name,
-		Email:      email,
-	}
+func New() *User {
+	return &User{}
 }
 
-// newEmpID generates a user and URL-friendly alpha-numeric (upper-case letters
+// NewEmpID generates a user and URL-friendly alpha-numeric (upper-case letters
 // and numbers) employee ID.
-func newEmpID() string {
+func NewEmpID() string {
 	return uniuri.NewLenChars(employeeIDLength, employeeIDChars)
 }

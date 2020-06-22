@@ -5,36 +5,12 @@ import (
 	"net/http"
 )
 
-const (
-	// ValidationMissingField is the ValidationCode for a missing field.
-	ValidationMissingField = "missing_field"
-
-	// ValidationInvalid is the ValidationCode for an invalid field.
-	ValidationInvalid = "invalid"
-
-	// ValidationAlreadyExists is the ValidationCode for a field that already exists.
-	ValidationAlreadyExists = "already_exists"
-
-	// ValidationUnprocessable is the ValidationCode for a field that is unprocessable.
-	ValidationUnprocessable = "unprocessable"
-
-	// ValidationCustom is a custom ValidationCode.
-	ValidationCustom = "custom"
-)
-
-// ValidationError represents a validation error on a field.
-type ValidationError struct {
-	Field          string `json:"field"`
-	ValidationCode string `json:"code"`
-	Message        string `json:"message"`
-}
-
 // ResponseError represents an error that is sent as a response to the client.
 type ResponseError struct {
 	StatusCode       int               `json:"-"`
 	ErrorCode        string            `json:"code"`
 	Message          string            `json:"message,omitempty"`
-	ValidationErrors []ValidationError `json:"validation_errors,omitempty"`
+	ValidationErrors map[string]string `json:"validation_errors,omitempty"`
 }
 
 // Msg sets ResponseError's Message.
@@ -54,19 +30,20 @@ func (re ResponseError) Error() string {
 	return re.ErrorCode
 }
 
-// ValidationErr appends a new ValidationError to the ResponseError.
-func (re ResponseError) ValidationErr(f, v, m string) ResponseError {
-	re.ValidationErrors = append(re.ValidationErrors, ValidationError{
-		Field:          f,
-		ValidationCode: v,
-		Message:        m,
-	})
+// AddValidationErr adds a new ValidationError to the ValidationErrors map.
+func (re ResponseError) AddValidationErr(f, m string) ResponseError {
+	if re.ValidationErrors == nil {
+		re.ValidationErrors = make(map[string]string)
+	}
+	re.ValidationErrors[f] = m
 	return re
 }
 
-// outputError is a small wrapper used when marshalling to JSON.
-type outputError struct {
-	Error ResponseError `json:"error"`
+// ValidationErr sets the entire ValidationErrors map to the provided map, which
+// is useful when processing fields using third-party validation libraries.
+func (re ResponseError) ValidationErr(m map[string]string) ResponseError {
+	re.ValidationErrors = m
+	return re
 }
 
 var (
@@ -134,8 +111,10 @@ var (
 		ErrorCode:  "INTERNAL_SERVER_ERROR",
 	}
 
+	// ErrResourceNotFound is the error returned when a resource is not found.
+	// This is usually returned from GET, PUT, DELETE routes.
 	ErrResourceNotFound = ResponseError{
 		StatusCode: http.StatusNotFound,
-		ErrorCode: "RESOURCE_NOT_FOUND",
+		ErrorCode:  "RESOURCE_NOT_FOUND",
 	}
 )
