@@ -16,6 +16,8 @@ type UserRepo interface {
 
 type HolidayRepo interface {
 	GetByDate(time time.Time) (*model.Holiday, error)
+	GetByYear(year int) (*[]model.Holiday, error)
+	GetByYearAndMonth(year, month int) (*[]model.Holiday, error)
 	GetByID(id int) (*model.Holiday, error)
 	Insert(u *model.Holiday) (int, error)
 }

@@ -6,14 +6,17 @@ import (
 	"adeia-api/internal/model"
 	log "adeia-api/internal/util/logger"
 	"encoding/json"
+	"github.com/julienschmidt/httprouter"
 	"net/http"
+	"strconv"
 )
 
 // UserRoutes returns a slice containing all user-related routes.
 func HolidayRoutes() []*route.Route {
 	routes := []*route.Route{
-		// create new user
 		route.New(http.MethodPost, "/holidays/", CreateHoliday(), middleware.Nil),
+		route.New(http.MethodGet, "/holidays/year/:year/month/:month", GetHolidayByYearAndMonth(), middleware.Nil),
+		route.New(http.MethodGet, "/holidays/year/:year", GetHolidayByYear(), middleware.Nil),
 	}
 	return routes
 }
@@ -34,10 +37,38 @@ func CreateHoliday() http.HandlerFunc {
 			return
 		}
 
-
 		writer.Header().Set("Content-Type", "application/json")
 		writer.Header().Set("Location", "http://google.com")
 		writer.WriteHeader(http.StatusCreated)
 
+	}
+}
+
+func GetHolidayByYear() http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		params := httprouter.ParamsFromContext(request.Context())
+		year, _ := strconv.Atoi(params.ByName("year"))
+		holidays, err := holidayService.GetHolidayByYear(year)
+		if err != nil {
+			log.Error(err)
+			_, _ = writer.Write(nil)
+		}
+		result, _ := json.Marshal(holidays)
+		_, _ = writer.Write(result)
+	}
+}
+
+func GetHolidayByYearAndMonth() http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		params := httprouter.ParamsFromContext(request.Context())
+		year, _ := strconv.Atoi(params.ByName("year"))
+		month, _ := strconv.Atoi(params.ByName("month"))
+		holidays, err := holidayService.GetHolidayByYearAndMonth(year, month)
+		if err != nil {
+			log.Error(err)
+			_, _ = writer.Write(nil)
+		}
+		result, _ := json.Marshal(holidays)
+		_, _ = writer.Write(result)
 	}
 }
