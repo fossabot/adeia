@@ -1,7 +1,7 @@
 server:
   host: ""                        # empty string to listen on all interfaces
   port: 5000
-  ratelimit_rate: 10              # no. of requests allowed per IP per second
+  ratelimit_rate: 10              # no. of requests allowed per IP, per second
   ratelimit_window: 30            # (in seconds) cleanup window
   max_request_body_size: 1048576  # max request body size (in bytes; default: 1MiB)
 
@@ -9,6 +9,12 @@ logger:
   level: debug
   paths:
     - stdout
+
+mailer:
+  username: example@example.com   # email ID to use for sending email notifications
+  password: password              # use an application-password (for example, an app-password from Gmail)
+  smtp_host: smtp.gmail.com       # smtp host of email provider
+  smtp_port: 587                  # use the TLS/SSL port
 
 cache:
   network: tcp

@@ -19,6 +19,10 @@ var (
 
 	// envOverrides holds all environment value keys for overriding the config.
 	envOverrides = map[string]string{
+		// mailer overrides
+		"mailer.username": util.EnvMailerUsername,
+		"mailer.password": util.EnvMailerPassword,
+
 		// database env overrides
 		"database.dbname":   util.EnvDBNameKey,
 		"database.user":     util.EnvDBUserKey,
