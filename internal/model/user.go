@@ -34,6 +34,10 @@ type User struct {
 
 	// IsActivated represents whether the user account is activated or not.
 	IsActivated bool `db:"is_activated" json:"is_activated"`
+
+	// EmailVerificationToken is a hashed random byte slice. The un-hashed version
+	// is sent to the user's email as a base64-encoded string.
+	EmailVerificationToken []byte `db:"email_verification_token" json:"-"`
 }
 
 // New creates a new User.

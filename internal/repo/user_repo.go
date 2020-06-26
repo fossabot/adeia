@@ -9,7 +9,8 @@ import (
 
 const (
 	queryUserInsert = "INSERT INTO users (employee_id, name, email, password, designation, " +
-		"is_activated) VALUES (:employee_id, :name, :email, :password, :designation, :is_activated) RETURNING id"
+		"is_activated, email_verification_token) VALUES (:employee_id, :name, :email, :password, " +
+		":designation, :is_activated, :email_verification_token) RETURNING id"
 	queryUserByID    = "SELECT * FROM users WHERE id=$1"
 	queryUserByEmail = "SELECT * FROM users WHERE email=$1"
 	queryUserByEmpID = "SELECT * FROM users WHERE employee_id=$1"

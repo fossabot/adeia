@@ -5,24 +5,18 @@ import (
 	"path/filepath"
 )
 
-const templateDir = "web/email_templates"
+const (
+	templateDir = "web/email_templates"
 
-// Template represents an email template.
-type Template struct {
-	name string
-	// Data is exposed so that the consumer can copy the struct, update its fields
-	// and pass it to Mailer's `Send()`.
-	Data interface{}
-}
+	// TemplateEmailVerify is the email verification template.
+	TemplateEmailVerify = "email_verify.tmpl"
+)
 
 var (
-	// EmailTemplateEmailVerify is the email verification template.
-	EmailTemplateEmailVerify = Template{
-		name: "email_verify.tmpl",
-		Data: struct {
-			Link string
-		}{},
-	}
+	// TemplateEmailVerifyData is the data struct for the corresponding template.
+	TemplateEmailVerifyData = struct {
+		Link string
+	}{}
 )
 
 // newTemplateCache creates a new in-memory cache (a map) of templates.

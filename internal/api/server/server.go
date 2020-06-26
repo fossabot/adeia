@@ -14,6 +14,7 @@ import (
 	"adeia-api/internal/controller"
 	"adeia-api/internal/db"
 	"adeia-api/internal/util/log"
+	"adeia-api/internal/util/mail"
 	"adeia-api/internal/util/ratelimiter"
 
 	"github.com/julienschmidt/httprouter"
@@ -26,19 +27,21 @@ type Server struct {
 	cache            cache.Cache
 	db               db.DB
 	globalMiddleware middleware.FuncChain
+	mailer           mail.Mailer
 	srv              *httprouter.Router
 }
 
 // New returns a new Server with the passed-in config.
-func New(d db.DB, c cache.Cache) *Server {
+func New(d db.DB, c cache.Cache, m mail.Mailer) *Server {
 	log.Debug("initializing new API server")
 
 	l := getGlobalRateLimiter()
 	return &Server{
-		srv:              httprouter.New(),
-		globalMiddleware: middleware.NewChain(middleware.RateLimiter(l)),
-		db:               d,
 		cache:            c,
+		db:               d,
+		globalMiddleware: middleware.NewChain(middleware.RateLimiter(l)),
+		mailer:           m,
+		srv:              httprouter.New(),
 	}
 }
 
@@ -46,7 +49,7 @@ func New(d db.DB, c cache.Cache) *Server {
 func (s *Server) AddRoutes() {
 	log.Debug("registering handles to router")
 
-	controller.Init(s.db, s.cache)
+	controller.Init(s.db, s.cache, s.mailer)
 	route.BindRoutes(s.srv, controller.UserRoutes())
 }
 

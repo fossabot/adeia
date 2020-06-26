@@ -94,7 +94,7 @@ func (e *emailBuilderImpl) Build() *email.Email {
 
 // Mailer represents a mailer service.
 type Mailer interface {
-	Send(e *email.Email, template Template, data interface{}) error
+	Send(e *email.Email, template string, data interface{}) error
 }
 
 // mailerImpl implements Mailer.
@@ -132,13 +132,13 @@ func NewMailer() (Mailer, error) {
 }
 
 // Send sends the specified email with the template and data.
-func (m *mailerImpl) Send(e *email.Email, template Template, data interface{}) error {
+func (m *mailerImpl) Send(e *email.Email, template string, data interface{}) error {
 	e.From = m.from
 
 	// read template from cache
-	ts, ok := m.templateCache[template.name]
+	ts, ok := m.templateCache[template]
 	if !ok {
-		return fmt.Errorf("email template with name %v does not exist", template.name)
+		return fmt.Errorf("email template with name %v does not exist", template)
 	}
 
 	// execute template
@@ -149,8 +149,7 @@ func (m *mailerImpl) Send(e *email.Email, template Template, data interface{}) e
 	}
 	e.HTML = buf.Bytes()
 
-	if err := e.Send(m.smtpAddr, m.auth); err != nil {
-		return fmt.Errorf("cannot send email: %v", err)
-	}
+	// TODO: properly handle the error
+	go e.Send(m.smtpAddr, m.auth)
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"adeia-api/internal/cache"
 	"adeia-api/internal/db"
 	"adeia-api/internal/util/log"
+	"adeia-api/internal/util/mail"
 )
 
 // Start starts the API server.
@@ -39,7 +40,13 @@ func Start() error {
 	}
 	defer cacheConn.Close()
 
-	s := server.New(dbConn, cacheConn)
+	// init mailer
+	mailer, err := mail.NewMailer()
+	if err != nil {
+		return fmt.Errorf("cannot initialize mailer: %v", err)
+	}
+
+	s := server.New(dbConn, cacheConn, mailer)
 	s.AddRoutes()
 	// start serving
 	s.Serve()

@@ -1,14 +1,11 @@
 package controller
 
 import (
-	"bytes"
 	"net/http"
 
 	"adeia-api/internal/api/middleware"
 	"adeia-api/internal/api/route"
 	"adeia-api/internal/util"
-	"adeia-api/internal/util/log"
-	"adeia-api/internal/util/mail"
 
 	"github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
@@ -18,49 +15,10 @@ import (
 // UserRoutes returns a slice containing all user-related routes.
 func UserRoutes() []*route.Route {
 	routes := []*route.Route{
-		route.New(http.MethodGet, "/test-email", TestEmail(), middleware.Nil), // test email
-		route.New(http.MethodPost, "/users", CreateUser(), middleware.Nil),    // create new user
-		route.New(http.MethodGet, "/users/:id", GetUser(), middleware.Nil),    // get user
+		route.New(http.MethodPost, "/users", CreateUser(), middleware.Nil), // create new user
+		route.New(http.MethodGet, "/users/:id", GetUser(), middleware.Nil), // get user
 	}
 	return routes
-}
-
-// TestEmail is a simple controller to test sending emails.
-// This is just for demonstrative purposes and will be removed in later commits.
-func TestEmail() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// mailer should be stored in some app-level struct
-		mailer, err := mail.NewMailer()
-		if err != nil {
-			log.Errorf("failed to create mailer: %v", err)
-			util.RespondWithError(w, util.ErrInternalServerError)
-			return
-		}
-
-		m := mail.NewEmailBuilder().
-			To([]string{"example@example.com"}).
-			Cc([]string{"example@example.com"}).
-			Subject("verify your email")
-
-		// add an attachment
-		b := bytes.NewReader([]byte("test attachment"))
-		if m, err = m.Attach(b, "attachment.txt", "text/plain"); err != nil {
-			log.Errorf("failed to attach file: %v", err)
-			util.RespondWithError(w, util.ErrInternalServerError)
-			return
-		}
-
-		// send the email
-		err = mailer.Send(m.Build(), mail.EmailTemplateEmailVerify, struct {
-			Link string
-		}{"http://example.com/verify?token=abcd"})
-
-		if err != nil {
-			log.Errorf("cannot send email: %v", err)
-			util.RespondWithError(w, util.ErrInternalServerError)
-			return
-		}
-	}
 }
 
 // GetUser returns a new user using the employee_id.

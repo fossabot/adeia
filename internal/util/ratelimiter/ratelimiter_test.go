@@ -12,7 +12,7 @@ import (
 func TestNewRateLimiter(t *testing.T) {
 	tests := []struct {
 		name string
-		r    rate.Limit
+		r    float64
 		b    int
 		d    time.Duration
 		want *Impl
@@ -34,7 +34,7 @@ func TestNewRateLimiter(t *testing.T) {
 		},
 		{
 			name: "inf rate",
-			r:    rate.Inf,
+			r:    float64(rate.Inf),
 			b:    5,
 			d:    5 * time.Second,
 			want: &Impl{
