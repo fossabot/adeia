@@ -11,6 +11,7 @@ import (
 	"github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/julienschmidt/httprouter"
+	"github.com/trustelem/zxcvbn"
 )
 
 // UserRoutes returns a slice containing all user-related routes.
@@ -51,6 +52,13 @@ func ActivateUser() http.HandlerFunc {
 				"password": validation.Validate(r.Password,
 					validation.Required,
 					validation.RuneLength(12, 128),
+					validation.By(func(value interface{}) error {
+						s, _ := value.(string)
+						if zxcvbn.PasswordStrength(s, []string{}).Score < 3 {
+							return errors.New("password is weak")
+						}
+						return nil
+					}),
 				),
 				"confirm_password": validation.Validate(r.ConfirmPassword,
 					validation.Required,

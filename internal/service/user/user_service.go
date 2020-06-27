@@ -54,7 +54,7 @@ func (i *Impl) CreateUser(name, email, empID, designation string) (string, error
 		IsActivated: false,
 	}
 	if empID == "" {
-		u.EmployeeID = model.NewEmpID()
+		u.EmployeeID = crypto.NewEmpID()
 	} else {
 		u.EmployeeID = empID
 	}

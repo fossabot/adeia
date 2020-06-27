@@ -1,8 +1,6 @@
 package repo
 
-import (
-	"adeia-api/internal/model"
-)
+import "adeia-api/internal/model"
 
 // UserRepo is an interface that represents the list of functions that need to be
 // implemented for the User model, by the repo.
