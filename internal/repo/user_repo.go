@@ -16,6 +16,7 @@ const (
 	queryUserByEmpID             = "SELECT * FROM users WHERE employee_id=$1"
 	queryUserByEmpIDAndEmail     = "SELECT * FROM users WHERE employee_id=$1 AND email=$2"
 	queryUpdatePwdAndIsActivated = "UPDATE users SET password=:password, is_activated=:is_activated WHERE id=:id"
+	queryDeleteByEmpID           = "DELETE FROM users WHERE employee_id=$1"
 )
 
 // UserRepoImpl is an implementation of UserRepo for Postgres.
@@ -83,4 +84,19 @@ func (i *UserRepoImpl) UpdatePasswordAndIsActivated(u *model.User, password stri
 		return err
 	}
 	return nil
+}
+
+// DeleteByEmpID deletes a user with the empID.
+func (i *UserRepoImpl) DeleteByEmpID(empID string) (rowsAffected int64, err error) {
+	result, err := i.db.Exec(queryDeleteByEmpID, empID)
+	if err != nil {
+		return 0, err
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	return rowsAffected, nil
 }

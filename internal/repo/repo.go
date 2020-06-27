@@ -9,6 +9,7 @@ type UserRepo interface {
 	GetByEmpID(empID string) (*model.User, error)
 	GetByID(id int) (*model.User, error)
 	GetByEmpIDAndEmail(empID, email string) (*model.User, error)
-	Insert(u *model.User) (int, error)
+	Insert(u *model.User) (lastInsertID int, err error)
 	UpdatePasswordAndIsActivated(u *model.User, password string, isActivated bool) error
+	DeleteByEmpID(empID string) (rowsAffected int64, err error)
 }

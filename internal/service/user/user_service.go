@@ -14,8 +14,9 @@ import (
 // Service contains all user-related business logic.
 type Service interface {
 	CreateUser(name, email, empID, designation string) (*model.User, error)
-	GetUserByEmpID(id string) (*model.User, error)
+	GetUserByEmpID(empID string) (*model.User, error)
 	ActivateUser(empID, email, password string) (*model.User, error)
+	DeleteUser(empID string) error
 }
 
 // Impl is a Service implementation.
@@ -110,4 +111,18 @@ func (i *Impl) ActivateUser(empID, email, password string) (*model.User, error) 
 	}
 
 	return usr, nil
+}
+
+// DeleteUser deletes a user.
+func (i *Impl) DeleteUser(empID string) error {
+	rowsAffected, err := i.usrRepo.DeleteByEmpID(empID)
+	if err != nil {
+		log.Errorf("cannot delete user: %v", err)
+		return util.ErrInternalServerError
+	} else if rowsAffected == 0 {
+		log.Errorf("no user found with empID: %v", err)
+		return util.ErrResourceNotFound
+	}
+
+	return nil
 }

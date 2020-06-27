@@ -17,14 +17,50 @@ import (
 // UserRoutes returns a slice containing all user-related routes.
 func UserRoutes() []*route.Route {
 	routes := []*route.Route{
-		// activate user
-		route.New(http.MethodPatch, "/users/:id/activation", ActivateUser(), middleware.Nil),
 		// create new user
 		route.New(http.MethodPost, "/users", CreateUser(), middleware.Nil),
 		// get user
 		route.New(http.MethodGet, "/users/:id", GetUser(), middleware.Nil),
+		// delete user
+		route.New(http.MethodDelete, "/users/:id", DeleteUser(), middleware.Nil),
+		// activate user
+		route.New(http.MethodPatch, "/users/:id/activation", ActivateUser(), middleware.Nil),
 	}
 	return routes
+}
+
+// DeleteUser deletes a user account.
+func DeleteUser() http.HandlerFunc {
+	validator := func(id string) *util.Validation {
+		return &util.Validation{
+			Errors: validation.Errors{
+				"id": validation.Validate(id,
+					validation.Required,
+					validation.RuneLength(5, 10),
+					is.Alphanumeric,
+				),
+			},
+		}
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		// from outside, the id appears to be the primary key.
+		id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+
+		// validate request
+		if err := validator(id).Validate(); err != nil {
+			util.RespondWithError(w, err.(util.ResponseError))
+			return
+		}
+
+		// delete user
+		if err := usrSvc.DeleteUser(id); err != nil {
+			util.RespondWithError(w, err.(util.ResponseError))
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	}
 }
 
 // ActivateUser activates a user account.
