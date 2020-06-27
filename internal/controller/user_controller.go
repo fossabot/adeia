@@ -18,7 +18,7 @@ import (
 func UserRoutes() []*route.Route {
 	routes := []*route.Route{
 		// activate user
-		route.New(http.MethodPut, "/users/:id", ActivateUser(), middleware.Nil),
+		route.New(http.MethodPatch, "/users/:id/activation", ActivateUser(), middleware.Nil),
 		// create new user
 		route.New(http.MethodPost, "/users", CreateUser(), middleware.Nil),
 		// get user
@@ -30,16 +30,15 @@ func UserRoutes() []*route.Route {
 // ActivateUser activates a user account.
 func ActivateUser() http.HandlerFunc {
 	type request struct {
-		EmployeeID      string `json:"employee_id"`
 		Email           string `json:"email"`
 		Password        string `json:"password"`
 		ConfirmPassword string `json:"confirm_password"`
 	}
 
-	validator := func(r request) *util.Validation {
+	validator := func(r request, id string) *util.Validation {
 		return &util.Validation{
 			Errors: validation.Errors{
-				"employee_id": validation.Validate(r.EmployeeID,
+				"id": validation.Validate(id,
 					validation.Required,
 					validation.RuneLength(5, 10),
 					is.Alphanumeric,
@@ -76,6 +75,7 @@ func ActivateUser() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		empID := httprouter.ParamsFromContext(r.Context()).ByName("id")
 		// decode request body
 		var rBody request
 		if err := util.DecodeBodyAndRespond(w, r, &rBody); err != nil {
@@ -83,19 +83,20 @@ func ActivateUser() http.HandlerFunc {
 		}
 
 		// validate request
-		if err := validator(rBody).Validate(); err != nil {
+		if err := validator(rBody, empID).Validate(); err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
 		}
 
 		// activate user
-		if err := usrSvc.ActivateUser(rBody.EmployeeID, rBody.Email, rBody.Password); err != nil {
+		usr, err := usrSvc.ActivateUser(empID, rBody.Email, rBody.Password)
+		if err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
 		}
 
 		// return response
-		w.WriteHeader(http.StatusOK)
+		util.RespondWithJSON(w, http.StatusOK, usr)
 	}
 }
 
@@ -147,7 +148,7 @@ func CreateUser() http.HandlerFunc {
 		}
 
 		// create user
-		empID, err := usrSvc.CreateUser(
+		usr, err := usrSvc.CreateUser(
 			rBody.Name,
 			rBody.Email,
 			rBody.EmployeeID,
@@ -159,8 +160,8 @@ func CreateUser() http.HandlerFunc {
 		}
 
 		// return response
-		w.Header().Set("Location", "/v1/users/"+empID)
-		w.WriteHeader(http.StatusCreated)
+		w.Header().Set("Location", "/v1/users/"+usr.EmployeeID)
+		util.RespondWithJSON(w, http.StatusCreated, usr)
 	}
 }
 

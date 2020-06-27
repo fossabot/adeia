@@ -13,9 +13,9 @@ import (
 
 // Service contains all user-related business logic.
 type Service interface {
-	CreateUser(name, email, empID, designation string) (string, error)
+	CreateUser(name, email, empID, designation string) (*model.User, error)
 	GetUserByEmpID(id string) (*model.User, error)
-	ActivateUser(empID, email, password string) error
+	ActivateUser(empID, email, password string) (*model.User, error)
 }
 
 // Impl is a Service implementation.
@@ -34,15 +34,15 @@ func New(d db.DB, c cache.Cache, m mail.Mailer) Service {
 }
 
 // CreateUser creates a new user.
-func (i *Impl) CreateUser(name, email, empID, designation string) (string, error) {
+func (i *Impl) CreateUser(name, email, empID, designation string) (*model.User, error) {
 	// check if user already exists
 	usr, err := i.usrRepo.GetByEmail(email)
 	if err != nil {
 		log.Errorf("cannot find if an user already exists with the provided email: %v", err)
-		return "", util.ErrInternalServerError
+		return nil, util.ErrInternalServerError
 	} else if usr != nil {
 		log.Warnf("user already exists with the provided email %s", email)
-		return "", util.ErrResourceAlreadyExists
+		return nil, util.ErrResourceAlreadyExists
 	}
 
 	// user does not exist, so create one
@@ -62,9 +62,9 @@ func (i *Impl) CreateUser(name, email, empID, designation string) (string, error
 	// create user
 	if _, err = i.usrRepo.Insert(u); err != nil {
 		log.Error("cannot create new user: %v", err)
-		return "", util.ErrInternalServerError
+		return nil, util.ErrInternalServerError
 	}
-	return u.EmployeeID, nil
+	return u, nil
 }
 
 // GetUserByEmpID gets a user using the provided empID.
@@ -82,32 +82,32 @@ func (i *Impl) GetUserByEmpID(empID string) (*model.User, error) {
 }
 
 // ActivateUser activates a user account.
-func (i *Impl) ActivateUser(empID, email, password string) error {
+func (i *Impl) ActivateUser(empID, email, password string) (*model.User, error) {
 	// check if user exists
 	usr, err := i.usrRepo.GetByEmpIDAndEmail(empID, email)
 	if err != nil {
 		log.Errorf("cannot find user by empID and email: %v", err)
-		return util.ErrInternalServerError
+		return nil, util.ErrInternalServerError
 	} else if usr == nil {
 		log.Errorf("user not found with the specified empID and email: %v", err)
-		return util.ErrResourceNotFound
+		return nil, util.ErrResourceNotFound
 	}
 
 	if usr.IsActivated {
 		log.Error("user already activated")
-		return util.ErrBadRequest.Msg("Account already activated")
+		return nil, util.ErrBadRequest.Msg("Account already activated")
 	}
 
 	// user exists, hash and store password
 	hash, err := crypto.HashPassword(password)
 	if err != nil {
 		log.Errorf("cannot generate hash for password: %v", err)
-		return util.ErrInternalServerError
+		return nil, util.ErrInternalServerError
 	}
 	if err := i.usrRepo.UpdatePasswordAndIsActivated(usr, hash, true); err != nil {
 		log.Errorf("cannot update user: %v", err)
-		return util.ErrInternalServerError
+		return nil, util.ErrInternalServerError
 	}
 
-	return nil
+	return usr, nil
 }
