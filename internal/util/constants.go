@@ -1,6 +1,12 @@
 package util
 
 const (
+	// EmailVerificationTokenSize represents the size of email verification token in bytes.
+	EmailVerificationTokenSize = 128
+
+	// EmployeeIDLength represents the length of the generated employee IDs.
+	EmployeeIDLength = 6
+
 	// ==========
 	// Keys of env variables to override config from config.yaml
 	// ==========

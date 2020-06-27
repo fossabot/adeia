@@ -15,19 +15,23 @@ import (
 	config "github.com/spf13/viper"
 )
 
+type dataResponse struct {
+	Data interface{} `json:"data"`
+}
+
+type errorResponse struct {
+	Error ResponseError `json:"error"`
+}
+
 // RespondWithError writes the provided ResponseError as a JSON response.
 func RespondWithError(w http.ResponseWriter, err ResponseError) {
-	o := &struct {
-		Error ResponseError `json:"error"`
-	}{err}
+	o := &errorResponse{err}
 	respond(w, err.StatusCode, o)
 }
 
 // RespondWithJSON writes the given payload as a JSON response.
 func RespondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
-	o := &struct {
-		Data interface{} `json:"data"`
-	}{payload}
+	o := &dataResponse{payload}
 	respond(w, statusCode, o)
 }
 

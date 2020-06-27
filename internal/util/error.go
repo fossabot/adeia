@@ -117,4 +117,10 @@ var (
 		StatusCode: http.StatusNotFound,
 		ErrorCode:  "RESOURCE_NOT_FOUND",
 	}
+
+	// ErrBadRequest is a generic error returned when a request is bad.
+	ErrBadRequest = ResponseError{
+		StatusCode: http.StatusBadRequest,
+		ErrorCode:  "BAD_REQUEST",
+	}
 )

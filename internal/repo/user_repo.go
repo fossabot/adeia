@@ -9,11 +9,13 @@ import (
 
 const (
 	queryUserInsert = "INSERT INTO users (employee_id, name, email, password, designation, " +
-		"is_activated, email_verification_token) VALUES (:employee_id, :name, :email, :password, " +
-		":designation, :is_activated, :email_verification_token) RETURNING id"
-	queryUserByID    = "SELECT * FROM users WHERE id=$1"
-	queryUserByEmail = "SELECT * FROM users WHERE email=$1"
-	queryUserByEmpID = "SELECT * FROM users WHERE employee_id=$1"
+		"is_activated) VALUES (:employee_id, :name, :email, :password, " +
+		":designation, :is_activated) RETURNING id"
+	queryUserByID                = "SELECT * FROM users WHERE id=$1"
+	queryUserByEmail             = "SELECT * FROM users WHERE email=$1"
+	queryUserByEmpID             = "SELECT * FROM users WHERE employee_id=$1"
+	queryUserByEmpIDAndEmail     = "SELECT * FROM users WHERE employee_id=$1 AND email=$2"
+	queryUpdatePwdAndIsActivated = "UPDATE users SET password=:password, is_activated=:is_activated WHERE id=:id"
 )
 
 // UserRepoImpl is an implementation of UserRepo for Postgres.
@@ -43,20 +45,28 @@ func (i *UserRepoImpl) Insert(u *model.User) (int, error) {
 
 // GetByID gets a user from db using the id.
 func (i *UserRepoImpl) GetByID(id int) (*model.User, error) {
-	u := model.User{}
-	if err := i.db.Get(&u, queryUserByID, id); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &u, nil
+	return i.get(queryUserByID, id)
 }
 
 // GetByEmail gets a user from db using the email.
 func (i *UserRepoImpl) GetByEmail(email string) (*model.User, error) {
+	return i.get(queryUserByEmail, email)
+}
+
+// GetByEmpID gets a user from db using the empId.
+func (i *UserRepoImpl) GetByEmpID(empID string) (*model.User, error) {
+	return i.get(queryUserByEmpID, empID)
+}
+
+// GetByEmpIDAndEmail gets a user using the empID and email.
+func (i *UserRepoImpl) GetByEmpIDAndEmail(empID, email string) (*model.User, error) {
+	return i.get(queryUserByEmpIDAndEmail, empID, email)
+}
+
+// get is a generic getter that other `Get*` methods wrap on.
+func (i *UserRepoImpl) get(query string, args ...interface{}) (*model.User, error) {
 	u := model.User{}
-	if err := i.db.Get(&u, queryUserByEmail, email); err != nil {
+	if err := i.db.Get(&u, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -65,14 +75,12 @@ func (i *UserRepoImpl) GetByEmail(email string) (*model.User, error) {
 	return &u, nil
 }
 
-// GetByEmpID gets a user from db using the empId.
-func (i *UserRepoImpl) GetByEmpID(empID string) (*model.User, error) {
-	u := model.User{}
-	if err := i.db.Get(&u, queryUserByEmpID, empID); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
+// UpdatePasswordAndIsActivated updates the user with the specified password and isActivated.
+func (i *UserRepoImpl) UpdatePasswordAndIsActivated(u *model.User, password string, isActivated bool) error {
+	u.Password = password
+	u.IsActivated = isActivated
+	if _, err := i.db.NamedExec(queryUpdatePwdAndIsActivated, u); err != nil {
+		return err
 	}
-	return &u, nil
+	return nil
 }

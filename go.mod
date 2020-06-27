@@ -3,6 +3,7 @@ module adeia-api
 go 1.14
 
 require (
+	github.com/alexedwards/argon2id v0.0.0-20200522061839-9369edc04b05
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/go-ozzo/ozzo-validation/v4 v4.2.1
 	github.com/golang/gddo v0.0.0-20200611223618-a4829ef13274

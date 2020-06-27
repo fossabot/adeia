@@ -1,8 +1,6 @@
 package user
 
 import (
-	"strings"
-
 	"adeia-api/internal/cache"
 	"adeia-api/internal/db"
 	"adeia-api/internal/model"
@@ -17,6 +15,7 @@ import (
 type Service interface {
 	CreateUser(name, email, empID, designation string) (string, error)
 	GetUserByEmpID(id string) (*model.User, error)
+	ActivateUser(empID, email, password string) error
 }
 
 // Impl is a Service implementation.
@@ -57,37 +56,14 @@ func (i *Impl) CreateUser(name, email, empID, designation string) (string, error
 	if empID == "" {
 		u.EmployeeID = model.NewEmpID()
 	} else {
-		u.EmployeeID = strings.ToUpper(empID)
+		u.EmployeeID = empID
 	}
-
-	// add email verification token
-	randBytes, err := crypto.GenerateRandomBytes(128)
-	if err != nil {
-		log.Error("error generating random bytes: %v", err)
-		return "", util.ErrInternalServerError
-	}
-	token := crypto.EncodeBase64(randBytes)
-	u.EmailVerificationToken = crypto.Hash(randBytes)
 
 	// create user
 	if _, err = i.usrRepo.Insert(u); err != nil {
 		log.Error("cannot create new user: %v", err)
 		return "", util.ErrInternalServerError
 	}
-
-	// send verification email
-	newEmail := mail.NewEmailBuilder().
-		To([]string{u.Email}).
-		Subject("Verify your email address - Adeia").
-		Build()
-	emailData := mail.TemplateEmailVerifyData
-	// TODO: use URL from front-end's verification page
-	emailData.Link = "http://frontend/verify?token=" + token
-	if err := i.mailer.Send(newEmail, mail.TemplateEmailVerify, emailData); err != nil {
-		log.Error("cannot send verification email: %v", err)
-		return "", util.ErrInternalServerError
-	}
-
 	return u.EmployeeID, nil
 }
 
@@ -103,4 +79,35 @@ func (i *Impl) GetUserByEmpID(empID string) (*model.User, error) {
 	}
 
 	return usr, nil
+}
+
+// ActivateUser activates a user account.
+func (i *Impl) ActivateUser(empID, email, password string) error {
+	// check if user exists
+	usr, err := i.usrRepo.GetByEmpIDAndEmail(empID, email)
+	if err != nil {
+		log.Errorf("cannot find user by empID and email: %v", err)
+		return util.ErrInternalServerError
+	} else if usr == nil {
+		log.Errorf("user not found with the specified empID and email: %v", err)
+		return util.ErrResourceNotFound
+	}
+
+	if usr.IsActivated {
+		log.Error("user already activated")
+		return util.ErrBadRequest.Msg("Account already activated")
+	}
+
+	// user exists, hash and store password
+	hash, err := crypto.HashPassword(password)
+	if err != nil {
+		log.Errorf("cannot generate hash for password: %v", err)
+		return util.ErrInternalServerError
+	}
+	if err := i.usrRepo.UpdatePasswordAndIsActivated(usr, hash, true); err != nil {
+		log.Errorf("cannot update user: %v", err)
+		return util.ErrInternalServerError
+	}
+
+	return nil
 }
