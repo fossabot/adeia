@@ -89,7 +89,8 @@ func (s *Server) Serve() {
 
 func getGlobalRateLimiter() ratelimiter.RateLimiter {
 	// create a new ratelimiter
-	// when r = b = x, then user is allowed to make a max. of x requests per second
+	// when refillRate = bucketSize, say some value `x`, then user will be allowed to
+	// make a max. of `x` requests per second
 	r := config.GetInt("server.ratelimit_rate")
 	l := ratelimiter.New(
 		float64(r),

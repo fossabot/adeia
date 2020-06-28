@@ -29,23 +29,23 @@ type Impl struct {
 	mu *sync.RWMutex
 
 	// no. of requests allowed per second per visitor
-	r rate.Limit
+	refillRate rate.Limit
 
 	// no. of burst requests allowed at a time
-	b int
+	bucketSize int
 
 	// how long a visitor can exist in the visitors map without making a request
 	cleanupWindow time.Duration
 }
 
 // New returns a new Impl with the specified params.
-func New(r float64, b int, d time.Duration) *Impl {
+func New(refillRate float64, bucketSize int, duration time.Duration) *Impl {
 	rl := &Impl{
 		visitors:      make(map[string]*visitor),
 		mu:            &sync.RWMutex{},
-		r:             rate.Limit(r),
-		b:             b,
-		cleanupWindow: d,
+		refillRate:    rate.Limit(refillRate),
+		bucketSize:    bucketSize,
+		cleanupWindow: duration,
 	}
 
 	// start the cleanup routine
@@ -67,7 +67,7 @@ func (rl *Impl) GetLimiter(ip string) *rate.Limiter {
 
 	// ip does not exist, so add it to visitors
 	rl.visitors[ip] = &visitor{
-		limiter:  rate.NewLimiter(rl.r, rl.b),
+		limiter:  rate.NewLimiter(rl.refillRate, rl.bucketSize),
 		lastSeen: time.Now(),
 	}
 	return rl.visitors[ip].limiter
