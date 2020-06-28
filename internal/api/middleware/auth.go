@@ -6,6 +6,7 @@ import (
 
 	"adeia-api/internal/service/user"
 	"adeia-api/internal/util"
+	"adeia-api/internal/util/constants"
 	"adeia-api/internal/util/log"
 
 	"github.com/go-ozzo/ozzo-validation/v4"
@@ -43,7 +44,7 @@ func Authenticated(usrSvc user.Service) Func {
 			}
 
 			// store in context
-			ctx := context.WithValue(r.Context(), util.ContextUserKey, usr)
+			ctx := context.WithValue(r.Context(), constants.ContextUserKey, usr)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"adeia-api/internal/util/constants"
 	"adeia-api/internal/util/log"
 
 	"github.com/golang/gddo/httputil/header"
@@ -157,12 +158,12 @@ func DecodeBodyAndRespond(w http.ResponseWriter, r *http.Request, dst interface{
 // AddSessionCookie adds a session cookie (sessID).
 func AddSessionCookie(w http.ResponseWriter, sessID string) {
 	cookie := http.Cookie{
-		Name:  SessionCookieKey,
+		Name:  constants.SessionCookieKey,
 		Value: sessID,
 		Path:  "/",
 		// TODO: add domain
 		// Domain:     "",
-		MaxAge: SessionExpiry,
+		MaxAge: constants.SessionExpiry,
 		// TODO: make this secure when HTTPS is set-up
 		// Secure:     false,
 		HttpOnly: true,
@@ -173,7 +174,7 @@ func AddSessionCookie(w http.ResponseWriter, sessID string) {
 
 // GetSessionFromCookie gets the sessID from the session cookie.
 func GetSessionFromCookie(r *http.Request) (sessID string, err error) {
-	cookie, err := r.Cookie(SessionCookieKey)
+	cookie, err := r.Cookie(constants.SessionCookieKey)
 	if err != nil {
 		return "", err
 	}

@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 
-	"adeia-api/internal/util"
+	"adeia-api/internal/util/constants"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/dchest/uniuri"
@@ -58,7 +58,7 @@ func ComparePwdHash(p, h string) (match bool, err error) {
 
 // NewEmpID generates a user and URL-friendly alpha-numeric employee ID.
 func NewEmpID() string {
-	return uniuri.NewLen(util.EmployeeIDLength)
+	return uniuri.NewLen(constants.EmployeeIDLength)
 }
 
 // NewUUID generates a new UUID (used for sessIDs).

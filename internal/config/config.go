@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"adeia-api/internal/util"
+	"adeia-api/internal/util/constants"
 
 	"github.com/spf13/viper"
 )
@@ -20,24 +20,24 @@ var (
 	// envOverrides holds all environment value keys for overriding the config.
 	envOverrides = map[string]string{
 		// mailer overrides
-		"mailer.username": util.EnvMailerUsername,
-		"mailer.password": util.EnvMailerPassword,
+		"mailer.username": constants.EnvMailerUsername,
+		"mailer.password": constants.EnvMailerPassword,
 
 		// database env overrides
-		"database.dbname":   util.EnvDBNameKey,
-		"database.user":     util.EnvDBUserKey,
-		"database.password": util.EnvDBPasswordKey,
-		"database.host":     util.EnvDBHostKey,
-		"database.port":     util.EnvDBPortKey,
+		"database.dbname":   constants.EnvDBNameKey,
+		"database.user":     constants.EnvDBUserKey,
+		"database.password": constants.EnvDBPasswordKey,
+		"database.host":     constants.EnvDBHostKey,
+		"database.port":     constants.EnvDBPortKey,
 
 		// cache env overrides
-		"cache.host": util.EnvCacheHostKey,
-		"cache.port": util.EnvCachePortKey,
+		"cache.host": constants.EnvCacheHostKey,
+		"cache.port": constants.EnvCachePortKey,
 	}
 )
 
 func setEnvOverrides() {
-	viper.SetEnvPrefix(util.EnvPrefix)
+	viper.SetEnvPrefix(constants.EnvPrefix)
 	for k, v := range envOverrides {
 		// The only error that is returned from this method is when len(input) == 0.
 		// So we can safely ignore it.
@@ -53,7 +53,7 @@ func Load() error {
 	initConf.Do(func() {
 		err = nil
 
-		confPath := getEnv(util.EnvConfPathKey, "config/config.yaml")
+		confPath := getEnv(constants.EnvConfPathKey, "config/config.yaml")
 		basePath := filepath.Base(confPath)
 
 		viper.SetConfigName(strings.TrimSuffix(basePath, filepath.Ext(basePath)))

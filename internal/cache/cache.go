@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"adeia-api/internal/util"
+	"adeia-api/internal/util/constants"
 	"adeia-api/internal/util/log"
 
 	"github.com/mediocregopher/radix/v3"
@@ -82,7 +82,7 @@ func (r *RedisCache) Close() error {
 // StoreSession stores a sessID:userID pair.
 func (r *RedisCache) StoreSession(sessID string, userID int) error {
 	sessKey := buildSessionKey(sessID)
-	return r.SetWithExpiry(sessKey, strconv.Itoa(userID), util.SessionExpiry)
+	return r.SetWithExpiry(sessKey, strconv.Itoa(userID), constants.SessionExpiry)
 }
 
 // GetSession returns the userID for the provided sessID.

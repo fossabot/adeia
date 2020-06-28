@@ -1,4 +1,4 @@
-package util
+package constants
 
 const (
 	// EmployeeIDLength represents the length of the generated employee IDs.
