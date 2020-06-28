@@ -10,6 +10,7 @@ import (
 
 	"github.com/alexedwards/argon2id"
 	"github.com/dchest/uniuri"
+	"github.com/google/uuid"
 )
 
 // GenerateRandomBytes generates cryptographically secure random bytes of the
@@ -58,4 +59,14 @@ func ComparePwdHash(p, h string) (match bool, err error) {
 // NewEmpID generates a user and URL-friendly alpha-numeric employee ID.
 func NewEmpID() string {
 	return uniuri.NewLen(util.EmployeeIDLength)
+}
+
+// NewUUID generates a new UUID (used for sessIDs).
+func NewUUID() (string, error) {
+	u, err := uuid.NewRandom()
+	if err != nil {
+		return "", nil
+	}
+
+	return u.String(), nil
 }

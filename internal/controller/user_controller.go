@@ -25,8 +25,59 @@ func UserRoutes() []*route.Route {
 		route.New(http.MethodDelete, "/users/:id", DeleteUser(), middleware.Nil),
 		// activate user
 		route.New(http.MethodPatch, "/users/:id/activation", ActivateUser(), middleware.Nil),
+		// login user
+		route.New(http.MethodPost, "/users/:id/session", LoginUser(), middleware.Nil),
 	}
 	return routes
+}
+
+// LoginUser logs in a user.
+func LoginUser() http.HandlerFunc {
+	type request struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	validator := func(r request) *util.Validation {
+		return &util.Validation{
+			Errors: validation.Errors{
+				"email": validation.Validate(r.Email,
+					validation.Required,
+					validation.RuneLength(3, 120),
+					is.EmailFormat,
+				),
+				"password": validation.Validate(r.Password,
+					validation.Required,
+					validation.RuneLength(12, 128),
+				),
+			},
+		}
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		// decode request body
+		var rBody request
+		if err := util.DecodeBodyAndRespond(w, r, &rBody); err != nil {
+			return
+		}
+
+		// validate request
+		if err := validator(rBody).Validate(); err != nil {
+			util.RespondWithError(w, err.(util.ResponseError))
+			return
+		}
+
+		// check credentials
+		sessID, err := usrSvc.LoginUser(rBody.Email, rBody.Password)
+		if err != nil {
+			util.RespondWithError(w, err.(util.ResponseError))
+			return
+		}
+
+		// add session to cookie
+		util.AddSessionCookie(w, sessID)
+		w.WriteHeader(http.StatusOK)
+	}
 }
 
 // DeleteUser deletes a user account.

@@ -8,6 +8,7 @@ require (
 	github.com/dlclark/regexp2 v1.2.0 // indirect
 	github.com/go-ozzo/ozzo-validation/v4 v4.2.1
 	github.com/golang/gddo v0.0.0-20200611223618-a4829ef13274
+	github.com/google/uuid v1.1.1
 	github.com/jackc/pgx/v4 v4.6.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/jordan-wright/email v0.0.0-20200602115436-fd8a7622303e

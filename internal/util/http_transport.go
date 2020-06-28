@@ -153,3 +153,30 @@ func DecodeBodyAndRespond(w http.ResponseWriter, r *http.Request, dst interface{
 
 	return nil
 }
+
+// AddSessionCookie adds a session cookie (sessID).
+func AddSessionCookie(w http.ResponseWriter, sessID string) {
+	cookie := http.Cookie{
+		Name:  SessionCookieKey,
+		Value: sessID,
+		Path:  "/",
+		// TODO: add domain
+		// Domain:     "",
+		MaxAge: SessionExpiry,
+		// TODO: make this secure when HTTPS is set-up
+		// Secure:     false,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(w, &cookie)
+}
+
+// GetSessionFromCookie gets the sessID from the session cookie.
+func GetSessionFromCookie(r *http.Request) (sessID string, err error) {
+	cookie, err := r.Cookie(SessionCookieKey)
+	if err != nil {
+		return "", err
+	}
+
+	return cookie.Value, nil
+}

@@ -100,7 +100,7 @@ var (
 	ErrResourceAlreadyExists = ResponseError{
 		StatusCode: http.StatusBadRequest,
 		ErrorCode:  "RESOURCE_ALREADY_EXISTS",
-		Message:    "A resource already exists with the specified fields.",
+		Message:    "A resource already exists with the specified fields",
 	}
 
 	// ErrInternalServerError is a generic error returned when something fails
@@ -122,5 +122,21 @@ var (
 	ErrBadRequest = ResponseError{
 		StatusCode: http.StatusBadRequest,
 		ErrorCode:  "BAD_REQUEST",
+	}
+
+	// ErrUnauthorized is the error returned when the user is not authenticated/
+	// authorized to perform an action.
+	ErrUnauthorized = ResponseError{
+		StatusCode: http.StatusUnauthorized,
+		ErrorCode:  "UNAUTHORIZED",
+		Message:    "You need to be logged-in to perform this action.",
+	}
+
+	// ErrAccountNotActivated is the error returned when the user account is not
+	// activated.
+	ErrAccountNotActivated = ResponseError{
+		StatusCode: http.StatusBadRequest,
+		ErrorCode:  "ACCOUNT_NOT_ACTIVATED",
+		Message:    "Your account is not activated",
 	}
 )

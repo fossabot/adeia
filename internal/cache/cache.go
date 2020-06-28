@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"adeia-api/internal/util"
 	"adeia-api/internal/util/log"
 
 	"github.com/mediocregopher/radix/v3"
@@ -15,7 +16,9 @@ import (
 type Cache interface {
 	Get(rcv interface{}, key string) error
 	Set(key string, value string) error
-	SetWithExpiry(key string, value string, seconds int) error
+	SetWithExpiry(key, value string, seconds uint64) error
+	StoreSession(sessID string, userID int) error
+	GetSession(rcv interface{}, sessID string) error
 	Delete(keys ...string) error
 	Close() error
 }
@@ -64,8 +67,8 @@ func (r *RedisCache) Delete(keys ...string) error {
 }
 
 // SetWithExpiry sets the provided key:value pair with specified seconds of TTL.
-func (r *RedisCache) SetWithExpiry(key string, value string, seconds int) error {
-	return r.do(radix.Cmd(nil, "SET", key, value, "EX", strconv.Itoa(seconds)))
+func (r *RedisCache) SetWithExpiry(key, value string, seconds uint64) error {
+	return r.do(radix.Cmd(nil, "SET", key, value, "EX", strconv.FormatUint(seconds, 10)))
 }
 
 // Close closes the connection pool.
@@ -74,6 +77,22 @@ func (r *RedisCache) Close() error {
 		return nil
 	}
 	return r.Pool.Close()
+}
+
+// StoreSession stores a sessID:userID pair.
+func (r *RedisCache) StoreSession(sessID string, userID int) error {
+	sessKey := buildSessionKey(sessID)
+	return r.SetWithExpiry(sessKey, strconv.Itoa(userID), util.SessionExpiry)
+}
+
+// GetSession returns the userID for the provided sessID.
+func (r *RedisCache) GetSession(userID interface{}, sessID string) error {
+	sessKey := buildSessionKey(sessID)
+	return r.Get(userID, sessKey)
+}
+
+func buildSessionKey(sessID string) string {
+	return "session:" + sessID
 }
 
 func (r *RedisCache) isAvailable() bool {
