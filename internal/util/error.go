@@ -139,4 +139,10 @@ var (
 		ErrorCode:  "ACCOUNT_NOT_ACTIVATED",
 		Message:    "Your account is not activated",
 	}
+
+	// ErrDatabaseError is the error returned when a database error occurs.
+	ErrDatabaseError = ResponseError{
+		StatusCode: http.StatusInternalServerError,
+		ErrorCode:  "DATABASE_ERROR",
+	}
 )

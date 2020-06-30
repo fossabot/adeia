@@ -44,11 +44,8 @@ func (i *Impl) ActivateUser(empID, email, password string) (*model.User, error) 
 	usr, err := i.usrRepo.GetByEmpID(empID)
 	if err != nil {
 		log.Errorf("cannot find user by empID and email: %v", err)
-		return nil, util.ErrInternalServerError
-	} else if usr == nil {
-		log.Errorf("user not found with the specified empID and email: %v", err)
-		return nil, util.ErrResourceNotFound
-	} else if usr.Email != email {
+		return nil, util.ErrDatabaseError
+	} else if usr == nil || usr.Email != email {
 		log.Errorf("email and empID do not match: %v", err)
 		return nil, util.ErrResourceNotFound
 	}
@@ -66,7 +63,7 @@ func (i *Impl) ActivateUser(empID, email, password string) (*model.User, error) 
 	}
 	if err := i.usrRepo.UpdatePasswordAndIsActivated(usr, hash, true); err != nil {
 		log.Errorf("cannot update user: %v", err)
-		return nil, util.ErrInternalServerError
+		return nil, util.ErrDatabaseError
 	}
 
 	return usr, nil
@@ -78,7 +75,7 @@ func (i *Impl) CreateUser(name, email, empID, designation string) (*model.User, 
 	usr, err := i.usrRepo.GetByEmailInclDeleted(email)
 	if err != nil {
 		log.Errorf("cannot find if an user already exists with the provided email: %v", err)
-		return nil, util.ErrInternalServerError
+		return nil, util.ErrDatabaseError
 	} else if usr != nil {
 		log.Warnf("user already exists with the provided email %s", email)
 		return nil, util.ErrResourceAlreadyExists
@@ -101,7 +98,7 @@ func (i *Impl) CreateUser(name, email, empID, designation string) (*model.User, 
 	// create user
 	if _, err = i.usrRepo.Insert(u); err != nil {
 		log.Error("cannot create new user: %v", err)
-		return nil, util.ErrInternalServerError
+		return nil, util.ErrDatabaseError
 	}
 	return u, nil
 }
@@ -111,7 +108,7 @@ func (i *Impl) DeleteUser(empID string) error {
 	rowsAffected, err := i.usrRepo.DeleteByEmpID(empID)
 	if err != nil {
 		log.Errorf("cannot delete user: %v", err)
-		return util.ErrInternalServerError
+		return util.ErrDatabaseError
 	} else if rowsAffected == 0 {
 		log.Errorf("no user found with empID: %v", err)
 		return util.ErrResourceNotFound
@@ -125,7 +122,7 @@ func (i *Impl) GetUserByEmpID(empID string) (*model.User, error) {
 	usr, err := i.usrRepo.GetByEmpID(empID)
 	if err != nil {
 		log.Errorf("cannot find user with the provided employee ID: %v", err)
-		return nil, util.ErrInternalServerError
+		return nil, util.ErrDatabaseError
 	} else if usr == nil {
 		log.Warnf("user does not exist for the provided employee ID %v", empID)
 		return nil, util.ErrResourceNotFound
@@ -139,7 +136,7 @@ func (i *Impl) GetUserByID(id int) (*model.User, error) {
 	usr, err := i.usrRepo.GetByID(id)
 	if err != nil {
 		log.Errorf("cannot find user with the provided ID: %v", err)
-		return nil, util.ErrInternalServerError
+		return nil, util.ErrDatabaseError
 	} else if usr == nil {
 		log.Warnf("user does not exist for the provided ID %v", id)
 		return nil, util.ErrResourceNotFound
@@ -154,7 +151,7 @@ func (i *Impl) LoginUser(email, password string) (*model.User, error) {
 	usr, err := i.usrRepo.GetByEmail(email)
 	if err != nil {
 		log.Errorf("cannot find user by email: %v", err)
-		return nil, util.ErrInternalServerError
+		return nil, util.ErrDatabaseError
 	} else if usr == nil {
 		log.Errorf("user not found with the specified email: %v", err)
 		return nil, util.ErrUnauthorized.Msg("Wrong credentials")
