@@ -11,6 +11,7 @@ import (
 	"github.com/alexedwards/argon2id"
 	"github.com/dchest/uniuri"
 	"github.com/google/uuid"
+	"github.com/trustelem/zxcvbn"
 )
 
 // GenerateRandomBytes generates cryptographically secure random bytes of the
@@ -69,4 +70,11 @@ func NewUUID() (string, error) {
 	}
 
 	return u.String(), nil
+}
+
+// PasswordStrength returns the strength of a password (on a scale of 0 - 4),
+// using zxcvbn.
+func PasswordStrength(password string) int {
+	// TODO: add site-specific, user-specific inputs to penalize weak passwords
+	return zxcvbn.PasswordStrength(password, []string{}).Score
 }

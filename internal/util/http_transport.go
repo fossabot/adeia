@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"adeia-api/internal/util/constants"
 	"adeia-api/internal/util/log"
 
 	"github.com/golang/gddo/httputil/header"
@@ -155,29 +154,28 @@ func DecodeBodyAndRespond(w http.ResponseWriter, r *http.Request, dst interface{
 	return nil
 }
 
-// AddSessionCookie adds a session cookie (sessID).
-func AddSessionCookie(w http.ResponseWriter, sessID string) {
+// AddCookie adds a new cookie.
+func AddCookie(w http.ResponseWriter, name, value, path string, maxAge int) {
 	cookie := http.Cookie{
-		Name:  constants.SessionCookieKey,
-		Value: sessID,
-		Path:  "/",
-		// TODO: add domain
-		// Domain:     "",
-		MaxAge: constants.SessionExpiry,
-		// TODO: make this secure when HTTPS is set-up
-		// Secure:     false,
+		Name:     name,
+		Value:    value,
+		Path:     path,
+		MaxAge:   maxAge,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
+		// TODO: make this secure when HTTPS is set-up
+		// Secure:     false,
+		// TODO: add domain
+		// Domain:     "",
 	}
 	http.SetCookie(w, &cookie)
 }
 
-// GetSessionFromCookie gets the sessID from the session cookie.
-func GetSessionFromCookie(r *http.Request) (sessID string, err error) {
-	cookie, err := r.Cookie(constants.SessionCookieKey)
+// GetCookie returns the value in the cookie identified by the name.
+func GetCookie(r *http.Request, name string) (string, error) {
+	cookie, err := r.Cookie(name)
 	if err != nil {
 		return "", err
 	}
-
 	return cookie.Value, nil
 }

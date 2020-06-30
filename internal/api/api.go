@@ -34,11 +34,10 @@ func Start() error {
 	// init cache
 	cacheConn, err := cache.New()
 	if err != nil {
-		log.Warnf("cannot initialize cache: %v\nrunning in cache-less mode...", err)
-	} else {
-		log.Debug("successfully initialized cache")
+		return fmt.Errorf("cannot initialize cache: %v", err)
 	}
 	defer cacheConn.Close()
+	log.Debug("successfully initialized cache connection")
 
 	// init mailer
 	mailer, err := mail.NewMailer()

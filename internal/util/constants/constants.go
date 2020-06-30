@@ -6,10 +6,8 @@ const (
 
 	// ContextUserKey is the key used to store authenticated user in the context.
 	ContextUserKey = "user"
-
 	// SessionCookieKey is the name of the session cookie.
 	SessionCookieKey = "id"
-
 	// SessionExpiry is the max-age of the session cookie (in seconds).
 	SessionExpiry = 24 * 60 * 60
 

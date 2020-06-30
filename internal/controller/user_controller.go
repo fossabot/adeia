@@ -3,15 +3,16 @@ package controller
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"adeia-api/internal/api/middleware"
 	"adeia-api/internal/api/route"
 	"adeia-api/internal/util"
+	"adeia-api/internal/util/crypto"
 
 	"github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/julienschmidt/httprouter"
-	"github.com/trustelem/zxcvbn"
 )
 
 // UserRoutes returns a slice containing all user-related routes.
@@ -68,14 +69,17 @@ func LoginUser() http.HandlerFunc {
 		}
 
 		// check credentials
-		sessID, err := usrSvc.LoginUser(rBody.Email, rBody.Password)
+		usr, err := usrSvc.LoginUser(rBody.Email, rBody.Password)
 		if err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
 		}
 
-		// add session to cookie
-		util.AddSessionCookie(w, sessID)
+		// create new session and add to cookie
+		if err := session.Create(w, strconv.Itoa(usr.ID)); err != nil {
+			util.RespondWithError(w, util.ErrInternalServerError)
+			return
+		}
 		w.WriteHeader(http.StatusOK)
 	}
 }
@@ -140,7 +144,7 @@ func ActivateUser() http.HandlerFunc {
 					validation.RuneLength(12, 128),
 					validation.By(func(value interface{}) error {
 						s, _ := value.(string)
-						if zxcvbn.PasswordStrength(s, []string{}).Score < 3 {
+						if crypto.PasswordStrength(s) < 3 {
 							return errors.New("password is weak")
 						}
 						return nil

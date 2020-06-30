@@ -14,7 +14,6 @@ const (
 	queryUserByID                = "SELECT * FROM users WHERE id=$1"
 	queryUserByEmail             = "SELECT * FROM users WHERE email=$1"
 	queryUserByEmpID             = "SELECT * FROM users WHERE employee_id=$1"
-	queryUserByEmpIDAndEmail     = "SELECT * FROM users WHERE employee_id=$1 AND email=$2"
 	queryUpdatePwdAndIsActivated = "UPDATE users SET password=:password, is_activated=:is_activated WHERE id=:id"
 	queryDeleteByEmpID           = "DELETE FROM users WHERE employee_id=$1"
 )
@@ -57,11 +56,6 @@ func (i *UserRepoImpl) GetByEmail(email string) (*model.User, error) {
 // GetByEmpID gets a user from db using the empId.
 func (i *UserRepoImpl) GetByEmpID(empID string) (*model.User, error) {
 	return i.get(queryUserByEmpID, empID)
-}
-
-// GetByEmpIDAndEmail gets a user using the empID and email.
-func (i *UserRepoImpl) GetByEmpIDAndEmail(empID, email string) (*model.User, error) {
-	return i.get(queryUserByEmpIDAndEmail, empID, email)
 }
 
 // get is a generic getter that other `Get*` methods wrap on.
