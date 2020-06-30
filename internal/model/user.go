@@ -1,5 +1,7 @@
 package model
 
+import "database/sql"
+
 // User represents the User model.
 type User struct {
 	// Id is a surrogate primary key that is auto-incremented by the database.
@@ -28,4 +30,10 @@ type User struct {
 
 	// IsActivated represents whether the user account is activated or not.
 	IsActivated bool `db:"is_activated" json:"is_activated"`
+
+	// DeletedAt stores the time at which a user was deleted. A timestamp is used
+	// instead of a bool, because we may need to run cleanups like "clear db records
+	// of users that were deleted more than a month ago". This is a nullable field
+	// and all queries should use `WHERE deleted_at IS NULL`.
+	DeletedAt sql.NullTime `db:"deleted_at" json:"-"`
 }

@@ -2,6 +2,7 @@ package repo
 
 import (
 	"database/sql"
+	"time"
 
 	"adeia-api/internal/db"
 	"adeia-api/internal/model"
@@ -11,11 +12,13 @@ const (
 	queryUserInsert = "INSERT INTO users (employee_id, name, email, password, designation, " +
 		"is_activated) VALUES (:employee_id, :name, :email, :password, " +
 		":designation, :is_activated) RETURNING id"
-	queryUserByID                = "SELECT * FROM users WHERE id=$1"
-	queryUserByEmail             = "SELECT * FROM users WHERE email=$1"
-	queryUserByEmpID             = "SELECT * FROM users WHERE employee_id=$1"
-	queryUpdatePwdAndIsActivated = "UPDATE users SET password=:password, is_activated=:is_activated WHERE id=:id"
-	queryDeleteByEmpID           = "DELETE FROM users WHERE employee_id=$1"
+	queryUserByID                = "SELECT * FROM users WHERE id=$1 AND deleted_at IS NULL"
+	queryUserByEmail             = "SELECT * FROM users WHERE email=$1 AND deleted_at IS NULL"
+	queryUserByEmailInclDeleted  = "SELECT * FROM users WHERE email=$1"
+	queryUserByEmpID             = "SELECT * FROM users WHERE employee_id=$1 AND deleted_at IS NULL"
+	queryUpdatePwdAndIsActivated = "UPDATE users SET password=:password, is_activated=:is_activated " +
+		"WHERE id=:id AND deleted_at IS NULL"
+	queryDeleteByEmpID = "UPDATE users SET deleted_at=$1 WHERE employee_id=$2 AND deleted_at IS NULL"
 )
 
 // UserRepoImpl is an implementation of UserRepo for Postgres.
@@ -53,6 +56,11 @@ func (i *UserRepoImpl) GetByEmail(email string) (*model.User, error) {
 	return i.get(queryUserByEmail, email)
 }
 
+// GetByEmailInclDeleted gets a user from db using the email, including deleted accounts.
+func (i *UserRepoImpl) GetByEmailInclDeleted(email string) (*model.User, error) {
+	return i.get(queryUserByEmailInclDeleted, email)
+}
+
 // GetByEmpID gets a user from db using the empId.
 func (i *UserRepoImpl) GetByEmpID(empID string) (*model.User, error) {
 	return i.get(queryUserByEmpID, empID)
@@ -82,7 +90,7 @@ func (i *UserRepoImpl) UpdatePasswordAndIsActivated(u *model.User, password stri
 
 // DeleteByEmpID deletes a user with the empID.
 func (i *UserRepoImpl) DeleteByEmpID(empID string) (rowsAffected int64, err error) {
-	result, err := i.db.Exec(queryDeleteByEmpID, empID)
+	result, err := i.db.Exec(queryDeleteByEmpID, time.Now().UTC(), empID)
 	if err != nil {
 		return 0, err
 	}

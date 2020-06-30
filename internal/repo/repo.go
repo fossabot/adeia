@@ -6,6 +6,7 @@ import "adeia-api/internal/model"
 // implemented for the User model, by the repo.
 type UserRepo interface {
 	GetByEmail(email string) (*model.User, error)
+	GetByEmailInclDeleted(email string) (*model.User, error)
 	GetByEmpID(empID string) (*model.User, error)
 	GetByID(id int) (*model.User, error)
 	Insert(u *model.User) (lastInsertID int, err error)

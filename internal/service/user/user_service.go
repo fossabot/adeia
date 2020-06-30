@@ -75,7 +75,7 @@ func (i *Impl) ActivateUser(empID, email, password string) (*model.User, error) 
 // CreateUser creates a new user.
 func (i *Impl) CreateUser(name, email, empID, designation string) (*model.User, error) {
 	// check if user already exists
-	usr, err := i.usrRepo.GetByEmail(email)
+	usr, err := i.usrRepo.GetByEmailInclDeleted(email)
 	if err != nil {
 		log.Errorf("cannot find if an user already exists with the provided email: %v", err)
 		return nil, util.ErrInternalServerError
