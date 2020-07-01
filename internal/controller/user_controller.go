@@ -17,27 +17,27 @@ import (
 
 // UserRoutes returns a slice containing all user-related routes.
 func UserRoutes() []*route.Route {
-	isAuthenticated := middleware.NewChain(middleware.IsAuthenticated(session, usrSvc))
-	isNotAuthenticated := middleware.NewChain(middleware.IsNotAuthenticated(session, usrSvc))
+	allowAuthenticated := middleware.NewChain(middleware.AllowAuthenticated(session, usrSvc, true))
+	allowUnauthenticated := middleware.NewChain(middleware.AllowAuthenticated(session, usrSvc, false))
 
 	routes := []*route.Route{
 		// create new user
 		route.New(http.MethodPost, "/users", CreateUser(), middleware.Nil),
 		// get user
-		route.New(http.MethodGet, "/users/:id", GetUser(), isAuthenticated),
+		route.New(http.MethodGet, "/users/:id", GetUser(), allowAuthenticated),
 		// delete user
-		route.New(http.MethodDelete, "/users/:id", DeleteUser(), isAuthenticated),
+		route.New(http.MethodDelete, "/users/:id", DeleteUser(), allowAuthenticated),
 		// activate user
-		route.New(http.MethodPatch, "/users/:id/activation", ActivateUser(), isNotAuthenticated),
+		route.New(http.MethodPatch, "/users/:id/activation", ActivateUser(), allowUnauthenticated),
 		// login user
-		route.New(http.MethodPost, "/users/:id/sessions", LoginUser(), isNotAuthenticated),
+		route.New(http.MethodPost, "/users/:id/sessions", LoginUser(), allowUnauthenticated),
 		// logout user
-		route.New(http.MethodPost, "/users/:id/sessions/destroy", LogoutUser(), isAuthenticated),
+		route.New(http.MethodPost, "/users/:id/sessions/destroy", LogoutUser(), allowAuthenticated),
 	}
 	return routes
 }
 
-// LoginUser logs in a user.
+// LoginUser logs in an user.
 func LoginUser() http.HandlerFunc {
 	type request struct {
 		Email    string `json:"email"`
@@ -89,6 +89,7 @@ func LoginUser() http.HandlerFunc {
 	}
 }
 
+// LogoutUser logs-out an user.
 func LogoutUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := session.Destroy(w, r); err != nil {
@@ -99,7 +100,7 @@ func LogoutUser() http.HandlerFunc {
 	}
 }
 
-// DeleteUser deletes a user account.
+// DeleteUser deletes an user account.
 func DeleteUser() http.HandlerFunc {
 	validator := func(id string) *util.Validation {
 		return &util.Validation{
@@ -133,7 +134,7 @@ func DeleteUser() http.HandlerFunc {
 	}
 }
 
-// ActivateUser activates a user account.
+// ActivateUser activates an user account.
 func ActivateUser() http.HandlerFunc {
 	type request struct {
 		Email           string `json:"email"`

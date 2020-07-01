@@ -91,12 +91,12 @@ func getGlobalRateLimiter() ratelimiter.RateLimiter {
 	// create a new ratelimiter
 	// when refillRate = bucketSize, say some value `x`, then user will be allowed to
 	// make a max. of `x` requests per second
-	r := config.GetInt("server.ratelimit_rate")
-	l := ratelimiter.New(
-		float64(r),
-		r,
+	rate := config.GetInt("server.ratelimit_rate")
+	limiter := ratelimiter.New(
+		float64(rate),
+		rate,
 		time.Duration(config.GetInt("server.ratelimit_window"))*time.Second,
 	)
 
-	return l
+	return limiter
 }

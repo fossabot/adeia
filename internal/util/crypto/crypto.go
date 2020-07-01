@@ -56,7 +56,7 @@ func ComparePwdHash(p, h string) (match bool, err error) {
 	return argon2id.ComparePasswordAndHash(p, h)
 }
 
-// NewEmpID generates a user and URL-friendly alpha-numeric employee ID.
+// NewEmpID generates an user and URL-friendly alpha-numeric employee ID.
 func NewEmpID() string {
 	return uniuri.NewLen(constants.EmployeeIDLength)
 }

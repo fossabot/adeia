@@ -33,7 +33,7 @@ type Service interface {
 
 // Session represents the session object, containing a sessionID:value pair. The
 // value currently is only a string, but in the future it may be a struct,
-// containing multiple fields that can tie a user to a sessionID.
+// containing multiple fields that can tie an user to a sessionID.
 type Session struct {
 	sessionID string
 	value     string
@@ -47,11 +47,11 @@ type Impl struct {
 }
 
 // NewService returns a new session service.
-func NewService(store Store, cookieName string, cookieAge int) Service {
+func NewService(store Store) Service {
 	return &Impl{
 		store:        store,
-		cookieName:   cookieName,
-		maxCookieAge: cookieAge,
+		cookieName:   constants.SessionCookieKey,
+		maxCookieAge: constants.SessionExpiry,
 	}
 }
 
@@ -78,7 +78,7 @@ func (i *Impl) Create(w http.ResponseWriter, value string) error {
 	return nil
 }
 
-// Get gets the sessionID from the cookie, retrieves the corresponding value from
+// GetAndRefresh gets the sessionID from the cookie, retrieves the corresponding value from
 // the store.
 func (i *Impl) GetAndRefresh(r *http.Request) (value string, err error) {
 	sessionID, err := i.readFromCookie(r)
@@ -101,6 +101,7 @@ func (i *Impl) GetAndRefresh(r *http.Request) (value string, err error) {
 	return session.value, nil
 }
 
+// Destroy destroys a session from the cookie and from the cache.
 func (i *Impl) Destroy(w http.ResponseWriter, r *http.Request) error {
 	sessionID, err := i.readFromCookie(r)
 	if err != nil {

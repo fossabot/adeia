@@ -38,7 +38,7 @@ func New(d db.DB, c cache.Cache, m mail.Mailer) Service {
 	}
 }
 
-// ActivateUser activates a user account.
+// ActivateUser activates an user account.
 func (i *Impl) ActivateUser(empID, email, password string) (*model.User, error) {
 	// check if user exists
 	usr, err := i.usrRepo.GetByEmpID(empID)
