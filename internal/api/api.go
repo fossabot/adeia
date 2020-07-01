@@ -3,37 +3,49 @@ package api
 import (
 	"fmt"
 
-	"adeia-api/internal/server"
-	"adeia-api/internal/service/cache"
-	"adeia-api/internal/service/db"
-	log "adeia-api/internal/utils/logger"
+	"adeia-api/internal/api/server"
+	"adeia-api/internal/cache"
+	"adeia-api/internal/db"
+	"adeia-api/internal/util/log"
+	"adeia-api/internal/util/mail"
 )
 
 // Start starts the API server.
+//
+// Error handling when serving requests is handled by the `server`. Only other
+// panic-able errors (errors that happen on things that are absolutely
+// necessary) are returned to main and panic-ed.
 func Start() error {
-	// Error handling when serving requests is handled by the server. Only other
-	// panic-able errors (errors that happen on things that are absolutely
-	// necessary) are returned to main and panicked.
-
 	// init logger
 	if err := log.Init(); err != nil {
 		return fmt.Errorf("cannot initialize logger: %v", err)
 	}
 	defer log.Sync()
+	log.Debug("successfully initialized logger")
 
 	// init db connection
-	if err := db.Init(); err != nil {
+	dbConn, err := db.New()
+	if err != nil {
 		return fmt.Errorf("cannot initialize connection to db: %v", err)
 	}
-	defer db.Close()
+	defer dbConn.Close()
+	log.Debug("successfully initialized database connection")
 
 	// init cache
-	if err := cache.Init(); err != nil {
-		log.Warnf("cannot initialize cache: %v\nrunning in cache-less mode...", err)
+	cacheConn, err := cache.New()
+	if err != nil {
+		return fmt.Errorf("cannot initialize cache: %v", err)
 	}
-	defer cache.Close()
+	defer cacheConn.Close()
+	log.Debug("successfully initialized cache connection")
 
-	s := server.New()
+	// init mailer
+	mailer, err := mail.NewMailer()
+	if err != nil {
+		return fmt.Errorf("cannot initialize mailer: %v", err)
+	}
+
+	s := server.New(dbConn, cacheConn, mailer)
 	s.AddRoutes()
 	// start serving
 	s.Serve()
