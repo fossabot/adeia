@@ -10,7 +10,6 @@ import (
 
 	"github.com/alexedwards/argon2id"
 	"github.com/dchest/uniuri"
-	"github.com/google/uuid"
 	"github.com/trustelem/zxcvbn"
 )
 
@@ -32,12 +31,12 @@ func EncodeHex(b []byte) string {
 
 // EncodeBase64 encodes the given byte slice into url-safe base64 (with padding).
 func EncodeBase64(b []byte) string {
-	return base64.URLEncoding.EncodeToString(b)
+	return base64.RawURLEncoding.EncodeToString(b)
 }
 
 // DecodeBase64 encodes the given byte slice into url-safe base64 (with padding).
 func DecodeBase64(s string) ([]byte, error) {
-	return base64.URLEncoding.DecodeString(s)
+	return base64.RawURLEncoding.DecodeString(s)
 }
 
 // Hash hashes the give byte slice using SHA256.
@@ -60,16 +59,6 @@ func ComparePwdHash(p, h string) (match bool, err error) {
 // NewEmpID generates a user and URL-friendly alpha-numeric employee ID.
 func NewEmpID() string {
 	return uniuri.NewLen(constants.EmployeeIDLength)
-}
-
-// NewUUID generates a new UUID (used for sessIDs).
-func NewUUID() (string, error) {
-	u, err := uuid.NewRandom()
-	if err != nil {
-		return "", nil
-	}
-
-	return u.String(), nil
 }
 
 // PasswordStrength returns the strength of a password (on a scale of 0 - 4),

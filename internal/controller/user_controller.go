@@ -17,17 +17,22 @@ import (
 
 // UserRoutes returns a slice containing all user-related routes.
 func UserRoutes() []*route.Route {
+	isAuthenticated := middleware.NewChain(middleware.IsAuthenticated(session, usrSvc))
+	isNotAuthenticated := middleware.NewChain(middleware.IsNotAuthenticated(session, usrSvc))
+
 	routes := []*route.Route{
 		// create new user
 		route.New(http.MethodPost, "/users", CreateUser(), middleware.Nil),
 		// get user
-		route.New(http.MethodGet, "/users/:id", GetUser(), middleware.Nil),
+		route.New(http.MethodGet, "/users/:id", GetUser(), isAuthenticated),
 		// delete user
-		route.New(http.MethodDelete, "/users/:id", DeleteUser(), middleware.Nil),
+		route.New(http.MethodDelete, "/users/:id", DeleteUser(), isAuthenticated),
 		// activate user
-		route.New(http.MethodPatch, "/users/:id/activation", ActivateUser(), middleware.Nil),
+		route.New(http.MethodPatch, "/users/:id/activation", ActivateUser(), isNotAuthenticated),
 		// login user
-		route.New(http.MethodPost, "/users/:id/session", LoginUser(), middleware.Nil),
+		route.New(http.MethodPost, "/users/:id/sessions", LoginUser(), isNotAuthenticated),
+		// logout user
+		route.New(http.MethodPost, "/users/:id/sessions/destroy", LogoutUser(), isAuthenticated),
 	}
 	return routes
 }
@@ -81,6 +86,16 @@ func LoginUser() http.HandlerFunc {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func LogoutUser() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := session.Destroy(w, r); err != nil {
+			util.RespondWithError(w, util.ErrInternalServerError)
+			return
+		}
+		util.RespondWithJSON(w, http.StatusNoContent, nil)
 	}
 }
 

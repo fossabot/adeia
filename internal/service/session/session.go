@@ -9,7 +9,6 @@ import (
 	"adeia-api/internal/util/log"
 
 	"github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 // Store represents the interface for the session store.
@@ -22,9 +21,10 @@ type Store interface {
 // Service is the interface containing all methods for the Session service.
 type Service interface {
 	Create(w http.ResponseWriter, value string) error
-	Get(r *http.Request) (value string, err error)
+	GetAndRefresh(r *http.Request) (value string, err error)
+	Destroy(w http.ResponseWriter, r *http.Request) error
 
-	addCookie(w http.ResponseWriter, s *Session)
+	addCookie(w http.ResponseWriter, s *Session, maxAge int)
 	newSessionID() (string, error)
 	retrieveSession(sessionID string) (Session, error)
 	readFromCookie(r *http.Request) (sessionID string, err error)
@@ -74,13 +74,13 @@ func (i *Impl) Create(w http.ResponseWriter, value string) error {
 	}
 
 	// add cookie
-	i.addCookie(w, &s)
+	i.addCookie(w, &s, i.maxCookieAge)
 	return nil
 }
 
 // Get gets the sessionID from the cookie, retrieves the corresponding value from
 // the store.
-func (i *Impl) Get(r *http.Request) (value string, err error) {
+func (i *Impl) GetAndRefresh(r *http.Request) (value string, err error) {
 	sessionID, err := i.readFromCookie(r)
 	if err != nil {
 		return "", err
@@ -89,10 +89,9 @@ func (i *Impl) Get(r *http.Request) (value string, err error) {
 	// validate sessionID
 	if err := validation.Validate(sessionID,
 		validation.Required,
-		is.UUIDv4,
 	); err != nil {
 		log.Debugf("validation failed for sessionID: %v", err)
-		return "", nil
+		return "", err
 	}
 
 	session, err := i.retrieveSession(sessionID)
@@ -100,6 +99,21 @@ func (i *Impl) Get(r *http.Request) (value string, err error) {
 		return "", err
 	}
 	return session.value, nil
+}
+
+func (i *Impl) Destroy(w http.ResponseWriter, r *http.Request) error {
+	sessionID, err := i.readFromCookie(r)
+	if err != nil {
+		return err
+	}
+
+	// remove from cache
+	if err := i.store.ExpireSession(sessionID); err != nil {
+		return err
+	}
+
+	i.addCookie(w, &Session{}, -1)
+	return nil
 }
 
 func (i *Impl) retrieveSession(sessionID string) (Session, error) {
@@ -119,11 +133,16 @@ func (i *Impl) storeSession(s Session) error {
 }
 
 func (i *Impl) newSessionID() (string, error) {
-	return crypto.NewUUID()
+	b, err := crypto.GenerateRandomBytes(128)
+	if err != nil {
+		return "", err
+	}
+
+	return crypto.EncodeBase64(b), nil
 }
 
-func (i *Impl) addCookie(w http.ResponseWriter, s *Session) {
-	util.AddCookie(w, i.cookieName, s.sessionID, "/", i.maxCookieAge)
+func (i *Impl) addCookie(w http.ResponseWriter, s *Session, maxAge int) {
+	util.AddCookie(w, i.cookieName, s.sessionID, "/", maxAge)
 }
 
 func (i *Impl) readFromCookie(r *http.Request) (sessionID string, err error) {

@@ -12,12 +12,12 @@ import (
 	"adeia-api/internal/util/log"
 )
 
-// Authenticate is a middleware that allows only authenticated users through.
-func Authenticate(sessionSvc session.Service, usrSvc user.Service) Func {
+// IsAuthenticated is a middleware that allows only authenticated users through.
+func IsAuthenticated(sessionSvc session.Service, usrSvc user.Service) Func {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// get user id
-			userID, err := sessionSvc.Get(r)
+			userID, err := sessionSvc.GetAndRefresh(r)
 			if err != nil {
 				log.Debugf("cannot get session cookie: %v", err)
 				util.RespondWithError(w, util.ErrUnauthorized)
@@ -36,6 +36,21 @@ func Authenticate(sessionSvc session.Service, usrSvc user.Service) Func {
 			// store in context
 			ctx := context.WithValue(r.Context(), constants.ContextUserKey, usr)
 			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+// IsNotAuthenticated is a middleware that allows only users that are not authenticated, through.
+func IsNotAuthenticated(sessionSvc session.Service, usrSvc user.Service) Func {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if userID, err := sessionSvc.GetAndRefresh(r); err == nil || userID == "" {
+				log.Debugf("user is authenticated: %v", err)
+				util.RespondWithError(w, util.ErrBadRequest.Msg("already authenticated"))
+				return
+			}
+
+			next.ServeHTTP(w, r)
 		})
 	}
 }

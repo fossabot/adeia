@@ -165,8 +165,6 @@ func AddCookie(w http.ResponseWriter, name, value, path string, maxAge int) {
 		SameSite: http.SameSiteStrictMode,
 		// TODO: make this secure when HTTPS is set-up
 		// Secure:     false,
-		// TODO: add domain
-		// Domain:     "",
 	}
 	http.SetCookie(w, &cookie)
 }
