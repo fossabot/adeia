@@ -13,7 +13,8 @@ import (
 	"adeia-api/internal/cache"
 	"adeia-api/internal/controller"
 	"adeia-api/internal/db"
-	log "adeia-api/internal/util/logger"
+	"adeia-api/internal/util/log"
+	"adeia-api/internal/util/mail"
 	"adeia-api/internal/util/ratelimiter"
 
 	"github.com/julienschmidt/httprouter"
@@ -26,19 +27,21 @@ type Server struct {
 	cache            cache.Cache
 	db               db.DB
 	globalMiddleware middleware.FuncChain
+	mailer           mail.Mailer
 	srv              *httprouter.Router
 }
 
 // New returns a new Server with the passed-in config.
-func New(d db.DB, c cache.Cache) *Server {
+func New(d db.DB, c cache.Cache, m mail.Mailer) *Server {
 	log.Debug("initializing new API server")
 
 	l := getGlobalRateLimiter()
 	return &Server{
-		srv:              httprouter.New(),
-		globalMiddleware: middleware.NewChain(middleware.RateLimiter(l)),
-		db:               d,
 		cache:            c,
+		db:               d,
+		globalMiddleware: middleware.NewChain(middleware.RateLimiter(l)),
+		mailer:           m,
+		srv:              httprouter.New(),
 	}
 }
 
@@ -46,7 +49,7 @@ func New(d db.DB, c cache.Cache) *Server {
 func (s *Server) AddRoutes() {
 	log.Debug("registering handles to router")
 
-	controller.Init(s.db, s.cache)
+	controller.Init(s.db, s.cache, s.mailer)
 	route.BindRoutes(s.srv, controller.UserRoutes())
 	route.BindRoutes(s.srv, controller.HolidayRoutes())
 }
@@ -87,13 +90,14 @@ func (s *Server) Serve() {
 
 func getGlobalRateLimiter() ratelimiter.RateLimiter {
 	// create a new ratelimiter
-	// when r = b = x, then user is allowed to make a max. of x requests per second
-	r := config.GetInt("server.ratelimit_rate")
-	l := ratelimiter.New(
-		float64(r),
-		r,
+	// when refillRate = bucketSize, say some value `x`, then user will be allowed to
+	// make a max. of `x` requests per second
+	rate := config.GetInt("server.ratelimit_rate")
+	limiter := ratelimiter.New(
+		float64(rate),
+		rate,
 		time.Duration(config.GetInt("server.ratelimit_window"))*time.Second,
 	)
 
-	return l
+	return limiter
 }

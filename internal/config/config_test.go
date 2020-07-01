@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	"adeia-api/internal/util"
+	"adeia-api/internal/util/constants"
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -55,7 +55,7 @@ logger:
 	defer func() {
 		_ = os.Remove(validConfFile.Name())
 		_ = os.Remove(invalidConfFile.Name())
-		_ = os.Unsetenv(util.EnvConfPathKey)
+		_ = os.Unsetenv(constants.EnvConfPathKey)
 	}()
 
 	t.Run("should load without any errors", func(t *testing.T) {
@@ -64,7 +64,7 @@ logger:
 		want.Set("server.host", "test")
 		want.Set("logger.level", "info")
 
-		_ = os.Setenv(util.EnvConfPathKey, validConfFile.Name())
+		_ = os.Setenv(constants.EnvConfPathKey, validConfFile.Name())
 		err := Load()
 		got := viper.GetViper()
 
@@ -78,7 +78,7 @@ logger:
 	initConf = new(sync.Once)
 
 	t.Run("should return error when file is nonexistent", func(t *testing.T) {
-		_ = os.Setenv(util.EnvConfPathKey, "/tmp/foo")
+		_ = os.Setenv(constants.EnvConfPathKey, "/tmp/foo")
 		err := Load()
 		assert.Error(t, err, "should return error when file does not exist")
 	})
@@ -86,7 +86,7 @@ logger:
 	initConf = new(sync.Once)
 
 	t.Run("should return error when yaml is invalid", func(t *testing.T) {
-		_ = os.Setenv(util.EnvConfPathKey, invalidConfFile.Name())
+		_ = os.Setenv(constants.EnvConfPathKey, invalidConfFile.Name())
 		err := Load()
 		assert.Error(t, err, "should return error when yaml is invalid")
 	})

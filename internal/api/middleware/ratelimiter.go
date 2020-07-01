@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	log "adeia-api/internal/util/logger"
+	"adeia-api/internal/util/log"
 	"adeia-api/internal/util/ratelimiter"
 )
 
