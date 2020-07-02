@@ -4,14 +4,14 @@ import (
 	"adeia-api/internal/api/middleware"
 	"adeia-api/internal/api/route"
 	"adeia-api/internal/model"
-	log "adeia-api/internal/util/logger"
+	log "adeia-api/internal/util/log"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"strconv"
 )
 
-// UserRoutes returns a slice containing all user-related routes.
+// HolidayRoutes returns a slice containing all holiday-related routes.
 func HolidayRoutes() []*route.Route {
 	routes := []*route.Route{
 		route.New(http.MethodPost, "/holidays/", CreateHoliday(), middleware.Nil),
@@ -32,7 +32,7 @@ func CreateHoliday() http.HandlerFunc {
 		}
 		// TODO: perform validation
 		// create user
-		if err := holidayService.CreateHoliday(holiday); err != nil {
+		if err := holidaySvc.CreateHoliday(holiday); err != nil {
 			log.Errorf("cannot create new holiday: %v", err)
 			http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
@@ -49,7 +49,7 @@ func GetHolidayByYear() http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		params := httprouter.ParamsFromContext(request.Context())
 		year, _ := strconv.Atoi(params.ByName("year"))
-		holidays, err := holidayService.GetHolidayByDate(model.Date{Year:year}, model.Year)
+		holidays, err := holidaySvc.GetHolidayByDate(model.Date{Year:year}, model.Year)
 		if err != nil {
 			log.Error(err)
 			_, _ = writer.Write(nil)
@@ -64,7 +64,7 @@ func GetHolidayByYearAndMonth() http.HandlerFunc {
 		params := httprouter.ParamsFromContext(request.Context())
 		year, _ := strconv.Atoi(params.ByName("year"))
 		month, _ := strconv.Atoi(params.ByName("month"))
-		holidays, err := holidayService.GetHolidayByDate(model.Date{Month:month,Year:year}, model.Month)
+		holidays, err := holidaySvc.GetHolidayByDate(model.Date{Month:month,Year:year}, model.Month)
 		if err != nil {
 			log.Error(err)
 			_, _ = writer.Write(nil)
@@ -80,7 +80,7 @@ func GetHolidayByDate() http.HandlerFunc {
 		year, _ := strconv.Atoi(params.ByName("year"))
 		month, _ := strconv.Atoi(params.ByName("month"))
 		date, _ := strconv.Atoi(params.ByName("date"))
-		holidays, err := holidayService.GetHolidayByDate(model.Date{DayOfMonth:date,Month:month,Year:year}, model.Year)
+		holidays, err := holidaySvc.GetHolidayByDate(model.Date{DayOfMonth:date,Month:month,Year:year}, model.Year)
 		if err != nil {
 			log.Error(err)
 			_, _ = writer.Write(nil)

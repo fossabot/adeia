@@ -13,6 +13,7 @@ type DB interface {
 	Get(dest interface{}, query string, args ...interface{}) error
 	Select(dest interface{}, query string, args ...interface{}) error
 	NamedExec(query string, arg interface{}) (sql.Result, error)
+	Exec(query string, args ...interface{}) (sql.Result, error)
 	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
 	PrepareNamed(query string) (*sqlx.NamedStmt, error)
 	Close() error
@@ -32,16 +33,6 @@ func New() (DB, error) {
 	}
 
 	return &PostgresDB{d}, nil
-}
-
-// NamedExec wraps sqlx.DB's NamedExec.
-func (p *PostgresDB) NamedExec(query string, arg interface{}) (sql.Result, error) {
-	return p.DB.NamedExec(query, arg)
-}
-
-// Get wraps sqlx.DB's Get.
-func (p *PostgresDB) Get(dest interface{}, query string, args ...interface{}) error {
-	return p.DB.Get(dest, query, args...)
 }
 
 // buildDSN is a helper to build the DSN string.

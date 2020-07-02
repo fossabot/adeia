@@ -5,11 +5,15 @@ import (
 	"adeia-api/internal/db"
 	"adeia-api/internal/model"
 	"adeia-api/internal/repo"
-	"adeia-api/internal/service"
 	"errors"
 	"fmt"
 	"time"
 )
+
+type Service interface {
+	CreateHoliday(holiday model.Holiday) error
+	GetHolidayByDate(date model.Date, timeUnit model.TimeUnit) (*[]model.Holiday, error)
+}
 
 // Impl is a Service implementation.
 type Impl struct {
@@ -17,7 +21,7 @@ type Impl struct {
 }
 
 // New creates a new Service.
-func New(d db.DB, c cache.Cache) service.HolidayService {
+func New(d db.DB, c cache.Cache) Service {
 	holiday := repo.NewHolidayRepo(d)
 	return &Impl{holiday}
 }
@@ -35,7 +39,7 @@ func (i *Impl) CreateHoliday(holiday model.Holiday) error {
 }
 
 func (i *Impl) GetHolidayByDate(date model.Date, timeUnit model.TimeUnit) (*[]model.Holiday, error) {
-	var err = errors.New("Time Unit Not Found")
+		var err = errors.New("Time Unit Not Found")
 	var holiday *[]model.Holiday
 	switch timeUnit {
 	case model.Year:
