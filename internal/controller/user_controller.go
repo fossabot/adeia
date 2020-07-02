@@ -10,9 +10,9 @@ import (
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/crypto"
 
+	"github.com/arkn98/httprouter"
 	"github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
-	"github.com/julienschmidt/httprouter"
 )
 
 // UserRoutes returns a slice containing all user-related routes.

@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/alexedwards/argon2id v0.0.0-20200522061839-9369edc04b05
+	github.com/arkn98/httprouter v1.4.1
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
 	github.com/dlclark/regexp2 v1.2.0 // indirect
 	github.com/go-ozzo/ozzo-validation/v4 v4.2.1
@@ -11,7 +12,6 @@ require (
 	github.com/jackc/pgx/v4 v4.6.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/jordan-wright/email v0.0.0-20200602115436-fd8a7622303e
-	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.5.2 // indirect
 	github.com/mediocregopher/radix/v3 v3.5.1
 	github.com/spf13/viper v1.7.0

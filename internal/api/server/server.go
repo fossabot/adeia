@@ -1,6 +1,7 @@
 package server
 
 import (
+	"adeia-api/internal/util/constants"
 	"context"
 	"net/http"
 	"os"
@@ -17,7 +18,7 @@ import (
 	"adeia-api/internal/util/mail"
 	"adeia-api/internal/util/ratelimiter"
 
-	"github.com/julienschmidt/httprouter"
+	"github.com/arkn98/httprouter"
 	config "github.com/spf13/viper"
 )
 
@@ -28,7 +29,7 @@ type Server struct {
 	db               db.DB
 	globalMiddleware middleware.FuncChain
 	mailer           mail.Mailer
-	srv              *httprouter.Router
+	srv              *httprouter.RouteGroup
 }
 
 // New returns a new Server with the passed-in config.
@@ -41,7 +42,7 @@ func New(d db.DB, c cache.Cache, m mail.Mailer) *Server {
 		db:               d,
 		globalMiddleware: middleware.NewChain(middleware.RateLimiter(l)),
 		mailer:           m,
-		srv:              httprouter.New(),
+		srv:              httprouter.New().NewGroup("/" + constants.APIVersion),
 	}
 }
 
@@ -60,7 +61,7 @@ func (s *Server) Serve() {
 		// TODO: add timeouts
 		// TODO: add TLS support
 		Addr:    addr,
-		Handler: s.globalMiddleware.Compose(s.srv),
+		Handler: s.globalMiddleware.Compose(s.srv.GetRouter()),
 	}
 
 	go func() {
