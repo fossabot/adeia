@@ -1,6 +1,9 @@
 package constants
 
 const (
+	// APIVersion represents the current major version of the API.
+	APIVersion = "v1"
+
 	// EmployeeIDLength represents the length of the generated employee IDs.
 	EmployeeIDLength = 6
 
