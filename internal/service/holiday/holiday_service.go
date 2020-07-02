@@ -1,7 +1,6 @@
 package user
 
 import (
-	"adeia-api/internal/service"
 	"errors"
 	"fmt"
 	"time"
@@ -12,13 +11,19 @@ import (
 	"adeia-api/internal/repo"
 )
 
+type Service interface {
+	CreateHoliday(holiday model.Holiday) error
+	GetHolidayByYear(year int) (*[]model.Holiday, error)
+	GetHolidayByYearAndMonth(year, month int) (*[]model.Holiday, error)
+}
+
 // Impl is a Service implementation.
 type Impl struct {
 	holidayRepo repo.HolidayRepo
 }
 
 // New creates a new Service.
-func New(d db.DB, c cache.Cache) service.HolidayService {
+func New(d db.DB, c cache.Cache) Service {
 	holiday := repo.NewHolidayRepo(d)
 	return &Impl{holiday}
 }

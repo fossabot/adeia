@@ -1,8 +1,6 @@
 package middleware
 
-import (
-	"net/http"
-)
+import "net/http"
 
 // Func represents a middleware function.
 type Func func(h http.Handler) http.Handler

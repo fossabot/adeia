@@ -17,8 +17,8 @@ import (
 
 // UserRoutes returns a slice containing all user-related routes.
 func UserRoutes() []*route.Route {
-	allowAuthenticated := middleware.NewChain(middleware.AllowAuthenticated(session, usrSvc, true))
-	allowUnauthenticated := middleware.NewChain(middleware.AllowAuthenticated(session, usrSvc, false))
+	allowAuthenticated := middleware.NewChain(middleware.AllowAuthenticated(sessionSvc, usrSvc, true))
+	allowUnauthenticated := middleware.NewChain(middleware.AllowAuthenticated(sessionSvc, usrSvc, false))
 
 	routes := []*route.Route{
 		// create new user
@@ -81,7 +81,7 @@ func LoginUser() http.HandlerFunc {
 		}
 
 		// create new session and add to cookie
-		if err := session.Create(w, strconv.Itoa(usr.ID)); err != nil {
+		if err := sessionSvc.Create(w, strconv.Itoa(usr.ID)); err != nil {
 			util.RespondWithError(w, util.ErrInternalServerError)
 			return
 		}
@@ -92,7 +92,7 @@ func LoginUser() http.HandlerFunc {
 // LogoutUser logs-out an user.
 func LogoutUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := session.Destroy(w, r); err != nil {
+		if err := sessionSvc.Destroy(w, r); err != nil {
 			util.RespondWithError(w, util.ErrInternalServerError)
 			return
 		}

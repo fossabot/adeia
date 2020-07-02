@@ -62,7 +62,7 @@ func (i *HolidayRepoImpl) GetByDate(date time.Time) (*model.Holiday, error) {
 }
 
 func (i *HolidayRepoImpl) GetByYear(year int) (*[]model.Holiday, error) {
-	u := []model.Holiday{}
+	var u []model.Holiday
 	if err := i.db.Select(&u, queryHolidayByYear, year); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -73,7 +73,7 @@ func (i *HolidayRepoImpl) GetByYear(year int) (*[]model.Holiday, error) {
 }
 
 func (i *HolidayRepoImpl) GetByYearAndMonth(year, month int) (*[]model.Holiday, error) {
-	u := []model.Holiday{}
+	var u []model.Holiday
 	if err := i.db.Select(&u, queryHolidayByYearAndMonth, year, month); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
