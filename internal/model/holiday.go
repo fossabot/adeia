@@ -9,17 +9,11 @@ type Holiday struct {
 	HolidayDate time.Time `db:"date" json:"date"`
 }
 
-type Date struct {
-	DayOfMonth int
-	Month int
-	Year int
-	Epoch int64
-}
-
 type TimeUnit string
 
- const (
- 	 Epoch TimeUnit = "Epoch"
-	 Month TimeUnit = "Month"
-	 Year TimeUnit = "Year"
- )
+const (
+	Epoch       TimeUnit = "Epoch"
+	Month       TimeUnit = "Month"
+	DateOfMonth TimeUnit = "DateOfMonth"
+	Year        TimeUnit = "Year"
+)

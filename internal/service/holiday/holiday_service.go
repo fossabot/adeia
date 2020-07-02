@@ -5,14 +5,15 @@ import (
 	"adeia-api/internal/db"
 	"adeia-api/internal/model"
 	"adeia-api/internal/repo"
-	"errors"
-	"fmt"
+	"adeia-api/internal/util"
+	"adeia-api/internal/util/log"
 	"time"
 )
 
 type Service interface {
-	CreateHoliday(holiday model.Holiday) error
-	GetHolidayByDate(date model.Date, timeUnit model.TimeUnit) (*[]model.Holiday, error)
+	CreateHoliday(holiday model.Holiday) (*model.Holiday, error)
+	GetHolidayByDate(date time.Time, timeUnit model.TimeUnit) (*[]model.Holiday, error)
+	GetHolidayById(id int) (*model.Holiday, error)
 }
 
 // Impl is a Service implementation.
@@ -26,34 +27,49 @@ func New(d db.DB, c cache.Cache) Service {
 	return &Impl{holiday}
 }
 
-func (i *Impl) CreateHoliday(holiday model.Holiday) error {
-	existingHoliday, err := i.holidayRepo.GetByEpoch(time.Parse("",holiday.HolidayDate).Unix())
+func (i *Impl) CreateHoliday(holiday model.Holiday) (*model.Holiday, error) {
+	existingHoliday, err := i.holidayRepo.GetByYMD(util.GetYMDFromTime(holiday.HolidayDate))
 	if err != nil {
-		return fmt.Errorf("cannot find existing holiday with the provided date: %v", err)
+		log.Errorf("Error while fetching holiday from Database : %v", err)
+		return nil, util.ErrDatabaseError
 	}
-	if existingHoliday != nil {
-		return errors.New("holiday already exists with the provided date")
+	if existingHoliday !=  (*[]model.Holiday)(nil) {
+		log.Errorf("Holiday already exists : %v", existingHoliday)
+		return nil, util.ErrResourceAlreadyExists
 	}
-	_, err = i.holidayRepo.Insert(&holiday)
-	return err
+	holidayId, err := i.holidayRepo.Insert(&holiday)
+	holiday.ID = holidayId
+	return &holiday,err
 }
 
-func (i *Impl) GetHolidayByDate(date model.Date, timeUnit model.TimeUnit) (*[]model.Holiday, error) {
-		var err = errors.New("Time Unit Not Found")
+func (i *Impl) GetHolidayByDate(date time.Time, granularity model.TimeUnit) (*[]model.Holiday, error) {
+	var err error
 	var holiday *[]model.Holiday
-	switch timeUnit {
+	switch granularity {
 	case model.Year:
-		holiday, err = i.holidayRepo.GetByYear(date.Year)
+		holiday, err = i.holidayRepo.GetByYear(date.Year())
 		break
 	case model.Month:
-		holiday, err = i.holidayRepo.GetByYear(date.Year)
+		holiday, err = i.holidayRepo.GetByYearAndMonth(date.Year(), int(date.Month()))
+		break
+	case model.DateOfMonth:
+		holiday, err = i.holidayRepo.GetByYMD(util.GetYMDFromTime(date))
 		break
 	case model.Epoch:
-		holiday, err = i.holidayRepo.GetByEpoch(date.Epoch)
+		holiday, err = i.holidayRepo.GetByEpoch(date.Unix())
 		break
 	}
 	if err != nil {
-		return nil, err
+		return nil, util.ErrDatabaseError.Msgf("Error : %v",err)
 	}
 	return holiday, nil
+}
+
+func (i *Impl) GetHolidayById(id int) (*model.Holiday, error) {
+	if holiday, err := i.holidayRepo.GetByID(id) ; err!=nil{
+		return nil, util.ErrDatabaseError.Msgf("Error : %v",err)
+	}else{
+		return holiday,nil
+	}
+
 }
