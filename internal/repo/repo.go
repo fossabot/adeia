@@ -2,7 +2,6 @@ package repo
 
 import (
 	"adeia-api/internal/model"
-	"time"
 )
 
 // UserRepo is an interface that represents the list of functions that need to be
@@ -15,7 +14,7 @@ type UserRepo interface {
 }
 
 type HolidayRepo interface {
-	GetByDate(time time.Time) (*model.Holiday, error)
+	GetByEpoch(epoch int64) (*[]model.Holiday, error)
 	GetByYear(year int) (*[]model.Holiday, error)
 	GetByYearAndMonth(year, month int) (*[]model.Holiday, error)
 	GetByID(id int) (*model.Holiday, error)

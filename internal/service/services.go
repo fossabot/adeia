@@ -9,6 +9,5 @@ type UserService interface {
 
 type HolidayService interface {
 	CreateHoliday(holiday model.Holiday) error
-	GetHolidayByYear(year int) (*[]model.Holiday, error)
-	GetHolidayByYearAndMonth(year, month int) (*[]model.Holiday, error)
+	GetHolidayByDate(date model.Date, timeUnit model.TimeUnit) (*[]model.Holiday, error)
 }

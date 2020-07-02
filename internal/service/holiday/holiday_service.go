@@ -1,15 +1,14 @@
 package user
 
 import (
-	"adeia-api/internal/service"
-	"errors"
-	"fmt"
-	"time"
-
 	"adeia-api/internal/cache"
 	"adeia-api/internal/db"
 	"adeia-api/internal/model"
 	"adeia-api/internal/repo"
+	"adeia-api/internal/service"
+	"errors"
+	"fmt"
+	"time"
 )
 
 // Impl is a Service implementation.
@@ -24,7 +23,7 @@ func New(d db.DB, c cache.Cache) service.HolidayService {
 }
 
 func (i *Impl) CreateHoliday(holiday model.Holiday) error {
-	existingHoliday, err := i.holidayRepo.GetByDate(holiday.HolidayDate)
+	existingHoliday, err := i.holidayRepo.GetByEpoch(time.Parse("",holiday.HolidayDate).Unix())
 	if err != nil {
 		return fmt.Errorf("cannot find existing holiday with the provided date: %v", err)
 	}
@@ -35,24 +34,20 @@ func (i *Impl) CreateHoliday(holiday model.Holiday) error {
 	return err
 }
 
-func (i *Impl) GetHolidayByDate(date time.Time) (*model.Holiday, error) {
-	holiday, err := i.holidayRepo.GetByDate(date)
-	if err != nil {
-		return nil, err
+func (i *Impl) GetHolidayByDate(date model.Date, timeUnit model.TimeUnit) (*[]model.Holiday, error) {
+	var err = errors.New("Time Unit Not Found")
+	var holiday *[]model.Holiday
+	switch timeUnit {
+	case model.Year:
+		holiday, err = i.holidayRepo.GetByYear(date.Year)
+		break
+	case model.Month:
+		holiday, err = i.holidayRepo.GetByYear(date.Year)
+		break
+	case model.Epoch:
+		holiday, err = i.holidayRepo.GetByEpoch(date.Epoch)
+		break
 	}
-	return holiday, nil
-}
-
-func (i *Impl) GetHolidayByYear(year int) (*[]model.Holiday, error) {
-	holiday, err := i.holidayRepo.GetByYear(year)
-	if err != nil {
-		return nil, err
-	}
-	return holiday, nil
-}
-
-func (i *Impl) GetHolidayByYearAndMonth(year, month int) (*[]model.Holiday, error) {
-	holiday, err := i.holidayRepo.GetByYearAndMonth(year, month)
 	if err != nil {
 		return nil, err
 	}
