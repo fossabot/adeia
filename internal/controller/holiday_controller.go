@@ -30,7 +30,7 @@ func CreateHoliday() http.HandlerFunc {
 			Errors: validation.Errors{
 				"date": validation.Validate(holiday.HolidayDate.String(),
 					validation.Required,
-					//validation.Date(time.RFC822),
+					//validation.Date(time.RFC3339),
 				),
 				"holiday_name": validation.Validate(holiday.Name,
 					validation.Required,

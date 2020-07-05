@@ -12,7 +12,7 @@ import (
 
 type Service interface {
 	CreateHoliday(holiday model.Holiday) (*model.Holiday, error)
-	GetHolidayByDate(date time.Time, timeUnit model.TimeUnit) (*[]model.Holiday, error)
+	GetHolidayByDate(date time.Time, timeUnit model.TimeUnit) ([]*model.Holiday, error)
 	GetHolidayById(id int) (*model.Holiday, error)
 }
 
@@ -33,7 +33,7 @@ func (i *Impl) CreateHoliday(holiday model.Holiday) (*model.Holiday, error) {
 		log.Errorf("Error while fetching holiday from Database : %v", err)
 		return nil, util.ErrDatabaseError
 	}
-	if existingHoliday !=  (*[]model.Holiday)(nil) {
+	if existingHoliday != nil   {
 		log.Errorf("Holiday already exists : %v", existingHoliday)
 		return nil, util.ErrResourceAlreadyExists
 	}
@@ -42,9 +42,9 @@ func (i *Impl) CreateHoliday(holiday model.Holiday) (*model.Holiday, error) {
 	return &holiday,err
 }
 
-func (i *Impl) GetHolidayByDate(date time.Time, granularity model.TimeUnit) (*[]model.Holiday, error) {
+func (i *Impl) GetHolidayByDate(date time.Time, granularity model.TimeUnit) ([]*model.Holiday, error) {
 	var err error
-	var holiday *[]model.Holiday
+	var holiday []*model.Holiday
 	switch granularity {
 	case model.Year:
 		holiday, err = i.holidayRepo.GetByYear(date.Year())
@@ -67,7 +67,8 @@ func (i *Impl) GetHolidayByDate(date time.Time, granularity model.TimeUnit) (*[]
 
 func (i *Impl) GetHolidayById(id int) (*model.Holiday, error) {
 	if holiday, err := i.holidayRepo.GetByID(id) ; err!=nil{
-		return nil, util.ErrDatabaseError.Msgf("Error : %v",err)
+		log.Errorf("Database Error : %v", err)
+		return nil, util.ErrDatabaseError
 	}else{
 		return holiday,nil
 	}

@@ -39,7 +39,7 @@ func (i *HolidayRepoImpl) Insert(u *model.Holiday) (int, error) {
 }
 
 func (i *HolidayRepoImpl) GetByID(id int) (*model.Holiday, error) {
-	u := model.Holiday{}
+	var u model.Holiday
 	if err := i.db.Get(&u, queryHolidayById, id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -49,46 +49,29 @@ func (i *HolidayRepoImpl) GetByID(id int) (*model.Holiday, error) {
 	return &u, nil
 }
 
-func (i *HolidayRepoImpl) GetByEpoch(epoch int64) (*[]model.Holiday, error) {
-	u := []model.Holiday{}
-	if err := i.db.Select(&u, queryHolidayByDate, epoch); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &u, nil
+func (i *HolidayRepoImpl) GetByEpoch(epoch int64) ([]*model.Holiday, error) {
+	return i.get(queryHolidayByDate, epoch)
 }
 
-func (i *HolidayRepoImpl) GetByYear(year int) (*[]model.Holiday, error) {
-	var u []model.Holiday
-	if err := i.db.Select(&u, queryHolidayByYear, year); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &u, nil
+func (i *HolidayRepoImpl) GetByYear(year int) ([]*model.Holiday, error) {
+	return i.get(queryHolidayByYear, year)
 }
 
-func (i *HolidayRepoImpl) GetByYearAndMonth(year, month int) (*[]model.Holiday, error) {
-	var u []model.Holiday
-	if err := i.db.Select(&u, queryHolidayByYearAndMonth, year, month); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &u, nil
+func (i *HolidayRepoImpl) GetByYearAndMonth(year, month int) ([]*model.Holiday, error) {
+	return i.get(queryHolidayByYearAndMonth, year, month)
 }
 
-func (i *HolidayRepoImpl) GetByYMD(year, month, dateOfMonth int) (*[]model.Holiday, error) {
-	var u []model.Holiday
-	if err := i.db.Select(&u, queryHolidayByYearAndMonthAndDate, year, month, dateOfMonth); err != nil {
+func (i *HolidayRepoImpl) GetByYMD(year, month, dateOfMonth int) ([]*model.Holiday, error) {
+	return i.get(queryHolidayByYearAndMonthAndDate, year, month, dateOfMonth)
+}
+
+func (i *HolidayRepoImpl) get(query string, args ...interface{}) ([]*model.Holiday, error) {
+	var u []*model.Holiday
+	if err := i.db.Select(&u, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
 	}
-	return &u, nil
+	return u, nil
 }
