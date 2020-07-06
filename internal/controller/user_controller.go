@@ -1,18 +1,15 @@
 package controller
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 
 	"adeia-api/internal/api/middleware"
 	"adeia-api/internal/api/route"
 	"adeia-api/internal/util"
-	"adeia-api/internal/util/crypto"
+	"adeia-api/internal/util/validation"
 
 	"github.com/arkn98/httprouter"
-	"github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 // UserRoutes returns a slice containing all user-related routes.
@@ -44,18 +41,11 @@ func LoginUser() http.HandlerFunc {
 		Password string `json:"password"`
 	}
 
-	validator := func(r request) *util.Validation {
-		return &util.Validation{
+	validator := func(r request) *validation.Validation {
+		return &validation.Validation{
 			Errors: validation.Errors{
-				"email": validation.Validate(r.Email,
-					validation.Required,
-					validation.RuneLength(3, 120),
-					is.EmailFormat,
-				),
-				"password": validation.Validate(r.Password,
-					validation.Required,
-					validation.RuneLength(12, 128),
-				),
+				"email":    validation.ValidateEmail(r.Email),
+				"password": validation.ValidateLoginPwd(r.Password),
 			},
 		}
 	}
@@ -102,14 +92,10 @@ func LogoutUser() http.HandlerFunc {
 
 // DeleteUser deletes an user account.
 func DeleteUser() http.HandlerFunc {
-	validator := func(id string) *util.Validation {
-		return &util.Validation{
+	validator := func(id string) *validation.Validation {
+		return &validation.Validation{
 			Errors: validation.Errors{
-				"id": validation.Validate(id,
-					validation.Required,
-					validation.RuneLength(5, 10),
-					is.Alphanumeric,
-				),
+				"id": validation.ValidateEmpID(id),
 			},
 		}
 	}
@@ -142,41 +128,13 @@ func ActivateUser() http.HandlerFunc {
 		ConfirmPassword string `json:"confirm_password"`
 	}
 
-	validator := func(r request, id string) *util.Validation {
-		return &util.Validation{
+	validator := func(r request, id string) *validation.Validation {
+		return &validation.Validation{
 			Errors: validation.Errors{
-				"id": validation.Validate(id,
-					validation.Required,
-					validation.RuneLength(5, 10),
-					is.Alphanumeric,
-				),
-				"email": validation.Validate(r.Email,
-					validation.Required,
-					validation.RuneLength(3, 120),
-					is.EmailFormat,
-				),
-				"password": validation.Validate(r.Password,
-					validation.Required,
-					validation.RuneLength(12, 128),
-					validation.By(func(value interface{}) error {
-						s, _ := value.(string)
-						if crypto.PasswordStrength(s) < 3 {
-							return errors.New("password is weak")
-						}
-						return nil
-					}),
-				),
-				"confirm_password": validation.Validate(r.ConfirmPassword,
-					validation.Required,
-					validation.RuneLength(12, 128),
-					validation.By(func(value interface{}) error {
-						s, _ := value.(string)
-						if s != r.Password {
-							return errors.New("passwords do not match")
-						}
-						return nil
-					}),
-				),
+				"id":               validation.ValidateEmpID(id),
+				"email":            validation.ValidateEmail(r.Email),
+				"password":         validation.ValidateNewPwd(r.Password),
+				"confirm_password": validation.ValidateConfirmPwd(r.ConfirmPassword, r.Password),
 			},
 		}
 	}
@@ -216,27 +174,13 @@ func CreateUser() http.HandlerFunc {
 		Designation string `json:"designation"`
 	}
 
-	validator := func(r request) *util.Validation {
-		return &util.Validation{
+	validator := func(r request) *validation.Validation {
+		return &validation.Validation{
 			Errors: validation.Errors{
-				"name": validation.Validate(r.Name,
-					validation.Required,
-					validation.RuneLength(2, 255),
-				),
-				"employee_id": validation.Validate(r.EmployeeID,
-					validation.Required.When(r.EmployeeID != ""), // employee_id is optional
-					validation.RuneLength(5, 10),
-					is.Alphanumeric,
-				),
-				"email": validation.Validate(r.Email,
-					validation.Required,
-					validation.RuneLength(3, 120),
-					is.EmailFormat,
-				),
-				"designation": validation.Validate(r.Designation,
-					validation.Required,
-					validation.RuneLength(1, 255),
-				),
+				"name":        validation.ValidateName(r.Name),
+				"employee_id": validation.ValidateEmpIDOptional(r.EmployeeID), // employee_id is optional
+				"email":       validation.ValidateEmail(r.Email),
+				"designation": validation.ValidateDesignation(r.Designation),
 			},
 		}
 	}
@@ -274,14 +218,10 @@ func CreateUser() http.HandlerFunc {
 
 // GetUser gets the user using the employee_id.
 func GetUser() http.HandlerFunc {
-	validator := func(id string) *util.Validation {
-		return &util.Validation{
+	validator := func(id string) *validation.Validation {
+		return &validation.Validation{
 			Errors: validation.Errors{
-				"id": validation.Validate(id,
-					validation.Required,
-					validation.RuneLength(5, 10),
-					is.Alphanumeric,
-				),
+				"id": validation.ValidateEmpID(id),
 			},
 		}
 	}
