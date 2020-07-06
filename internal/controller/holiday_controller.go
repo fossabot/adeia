@@ -60,7 +60,7 @@ func CreateHoliday() http.HandlerFunc {
 		}
 
 		// Call holiday service to create
-		response , err := holidaySvc.CreateHoliday(holiday)
+		response, err := holidaySvc.CreateHoliday(holiday)
 		if err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
@@ -88,8 +88,8 @@ func GetHolidayByYear() http.HandlerFunc {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
 		}
-		year,_ := strconv.Atoi(param)
-		holidays, err := holidaySvc.GetHolidayByDate(util.GetTime(year,1,1), constants.Year)
+		year, _ := strconv.Atoi(param)
+		holidays, err := holidaySvc.GetHolidayByDate(util.GetTime(year, 1, 1), constants.Year)
 		if err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
@@ -115,15 +115,14 @@ func GetHolidayByYearAndMonth() http.HandlerFunc {
 	}
 	return func(writer http.ResponseWriter, request *http.Request) {
 		params := httprouter.ParamsFromContext(request.Context())
-		if err := validator(params.ByName("year"),params.ByName("month")).Validate(); err != nil {
+		if err := validator(params.ByName("year"), params.ByName("month")).Validate(); err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
 		}
 		year, _ := strconv.Atoi(params.ByName("year"))
 		month, _ := strconv.Atoi(params.ByName("month"))
 
-
-		holidays, err := holidaySvc.GetHolidayByDate(util.GetTime(year,month,1), constants.Month)
+		holidays, err := holidaySvc.GetHolidayByDate(util.GetTime(year, month, 1), constants.Month)
 		if err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
@@ -153,7 +152,7 @@ func GetHolidayByDate() http.HandlerFunc {
 	}
 	return func(writer http.ResponseWriter, request *http.Request) {
 		params := httprouter.ParamsFromContext(request.Context())
-		if err := validator(params.ByName("year"),params.ByName("month"),params.ByName("date")).Validate(); err != nil {
+		if err := validator(params.ByName("year"), params.ByName("month"), params.ByName("date")).Validate(); err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
 		}
@@ -162,7 +161,7 @@ func GetHolidayByDate() http.HandlerFunc {
 		month, _ := strconv.Atoi(params.ByName("month"))
 		date, _ := strconv.Atoi(params.ByName("date"))
 
-		holidays, err := holidaySvc.GetHolidayByDate(util.GetTime(year,month,date), constants.DateOfMonth)
+		holidays, err := holidaySvc.GetHolidayByDate(util.GetTime(year, month, date), constants.DateOfMonth)
 		if err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
@@ -170,7 +169,6 @@ func GetHolidayByDate() http.HandlerFunc {
 		util.RespondWithJSON(writer, http.StatusOK, holidays)
 	}
 }
-
 
 func GetHolidayById() http.HandlerFunc {
 	validator := func(id string) *util.Validation {
@@ -189,7 +187,7 @@ func GetHolidayById() http.HandlerFunc {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
 		}
-		holidayId , _ := strconv.Atoi(id)
+		holidayId, _ := strconv.Atoi(id)
 		holiday, err := holidaySvc.GetHolidayById(holidayId)
 		if err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
@@ -216,7 +214,7 @@ func DeleteHolidayById() http.HandlerFunc {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
 		}
-		holidayId , _ := strconv.Atoi(id)
+		holidayId, _ := strconv.Atoi(id)
 		err := holidaySvc.DeleteById(holidayId)
 		if err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
@@ -251,12 +249,12 @@ func UpdateHolidayById() http.HandlerFunc {
 		id := httprouter.ParamsFromContext(request.Context()).ByName("id")
 		holiday_name := httprouter.ParamsFromContext(request.Context()).ByName("name")
 		holiday_type := httprouter.ParamsFromContext(request.Context()).ByName("type")
-		holiday := model.Holiday{HolidayType:holiday_type, Name:holiday_name}
-		if err := validator(holiday,id).Validate(); err != nil {
+		holiday := model.Holiday{HolidayType: holiday_type, Name: holiday_name}
+		if err := validator(holiday, id).Validate(); err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
 		}
-		holidayId , _ := strconv.Atoi(id)
+		holidayId, _ := strconv.Atoi(id)
 		err := holidaySvc.UpdateById(holiday, holidayId)
 		if err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))

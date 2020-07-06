@@ -1,6 +1,7 @@
 package constants
 
 type TimeUnit string
+
 const (
 	// APIVersion represents the current major version of the API.
 	APIVersion = "v1"
@@ -55,5 +56,4 @@ const (
 	Month       TimeUnit = "Month"
 	DateOfMonth TimeUnit = "DateOfMonth"
 	Year        TimeUnit = "Year"
-
 )
