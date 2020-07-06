@@ -7,6 +7,7 @@ import (
 	"adeia-api/internal/repo"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/log"
+	"database/sql"
 	"time"
 )
 
@@ -14,6 +15,8 @@ type Service interface {
 	CreateHoliday(holiday model.Holiday) (*model.Holiday, error)
 	GetHolidayByDate(date time.Time, timeUnit model.TimeUnit) ([]*model.Holiday, error)
 	GetHolidayById(id int) (*model.Holiday, error)
+	UpdateById(holiday model.Holiday, id int) error
+	DeleteById(id int) error
 }
 
 // Impl is a Service implementation.
@@ -33,13 +36,13 @@ func (i *Impl) CreateHoliday(holiday model.Holiday) (*model.Holiday, error) {
 		log.Errorf("Error while fetching holiday from Database : %v", err)
 		return nil, util.ErrDatabaseError
 	}
-	if existingHoliday != nil   {
+	if existingHoliday != nil {
 		log.Errorf("Holiday already exists : %v", existingHoliday)
 		return nil, util.ErrResourceAlreadyExists
 	}
 	holidayId, err := i.holidayRepo.Insert(&holiday)
 	holiday.ID = holidayId
-	return &holiday,err
+	return &holiday, err
 }
 
 func (i *Impl) GetHolidayByDate(date time.Time, granularity model.TimeUnit) ([]*model.Holiday, error) {
@@ -60,17 +63,43 @@ func (i *Impl) GetHolidayByDate(date time.Time, granularity model.TimeUnit) ([]*
 		break
 	}
 	if err != nil {
-		return nil, util.ErrDatabaseError.Msgf("Error : %v",err)
+		return nil, util.ErrDatabaseError.Msgf("Error : %v", err)
 	}
 	return holiday, nil
 }
 
 func (i *Impl) GetHolidayById(id int) (*model.Holiday, error) {
-	if holiday, err := i.holidayRepo.GetByID(id) ; err!=nil{
+	if holiday, err := i.holidayRepo.GetByID(id); err != nil {
 		log.Errorf("Database Error : %v", err)
 		return nil, util.ErrDatabaseError
-	}else{
-		return holiday,nil
+	} else {
+		return holiday, nil
 	}
 
+}
+
+func (i *Impl) UpdateById(holiday model.Holiday, id int) error {
+	holiday.ID = id
+	err := i.holidayRepo.UpdateNameAndType(holiday)
+	if err == sql.ErrNoRows {
+		return util.ErrResourceNotFound
+	} else if err != nil {
+		log.Errorf("Database Error : %v", err)
+		return util.ErrDatabaseError
+	} else {
+		return nil
+	}
+}
+
+func (i *Impl) DeleteById(id int) error {
+	holiday := model.Holiday{ID: id}
+	err := i.holidayRepo.DeletedById(holiday)
+	if err == sql.ErrNoRows {
+		return util.ErrResourceNotFound
+	} else if err != nil {
+		log.Errorf("Database Error : %v", err)
+		return util.ErrDatabaseError
+	} else {
+		return nil
+	}
 }

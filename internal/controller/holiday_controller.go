@@ -20,6 +20,8 @@ func HolidayRoutes() []*route.Route {
 		route.New(http.MethodGet, "/holidays/year/:year", GetHolidayByYear(), middleware.Nil),
 		route.New(http.MethodGet, "/holidays/year/:year/month/:month/date/:date", GetHolidayByDate(), middleware.Nil),
 		route.New(http.MethodGet, "/holidays/id/:id", GetHolidayById(), middleware.Nil),
+		route.New(http.MethodPut, "/holidays/id/:id", UpdateHolidayById(), middleware.Nil),
+		route.New(http.MethodDelete, "/holidays/id/:id", DeleteHolidayById(), middleware.Nil),
 	}
 	return routes
 }
@@ -188,6 +190,73 @@ func GetHolidayById() http.HandlerFunc {
 		}
 		holidayId , _ := strconv.Atoi(id)
 		holiday, err := holidaySvc.GetHolidayById(holidayId)
+		if err != nil {
+			util.RespondWithError(writer, err.(util.ResponseError))
+			return
+		}
+		util.RespondWithJSON(writer, http.StatusOK, holiday)
+	}
+}
+
+func DeleteHolidayById() http.HandlerFunc {
+	validator := func(id string) *util.Validation {
+		return &util.Validation{
+			Errors: validation.Errors{
+				"id": validation.Validate(id,
+					validation.Required,
+					is.UTFNumeric,
+				),
+			},
+		}
+	}
+	return func(writer http.ResponseWriter, request *http.Request) {
+		id := httprouter.ParamsFromContext(request.Context()).ByName("id")
+		if err := validator(id).Validate(); err != nil {
+			util.RespondWithError(writer, err.(util.ResponseError))
+			return
+		}
+		holidayId , _ := strconv.Atoi(id)
+		err := holidaySvc.DeleteById(holidayId)
+		if err != nil {
+			util.RespondWithError(writer, err.(util.ResponseError))
+			return
+		}
+		util.RespondWithJSON(writer, http.StatusNoContent, nil)
+	}
+}
+
+func UpdateHolidayById() http.HandlerFunc {
+	validator := func(holiday model.Holiday) *util.Validation {
+		return &util.Validation{
+			Errors: validation.Errors{
+				"id": validation.Validate(holiday.ID,
+					validation.Required,
+					is.UTFNumeric,
+				),
+				"holiday_name": validation.Validate(holiday.Name,
+					validation.Required,
+					validation.RuneLength(4, 128),
+					is.Alphanumeric,
+				),
+				"holiday_type": validation.Validate(holiday.HolidayType,
+					validation.Required,
+					validation.RuneLength(4, 128),
+					is.UTFLetterNumeric,
+				),
+			},
+		}
+	}
+	return func(writer http.ResponseWriter, request *http.Request) {
+		id := httprouter.ParamsFromContext(request.Context()).ByName("id")
+		holiday_name := httprouter.ParamsFromContext(request.Context()).ByName("name")
+		holiday_type := httprouter.ParamsFromContext(request.Context()).ByName("type")
+		if err := validator(id).Validate(); err != nil {
+			util.RespondWithError(writer, err.(util.ResponseError))
+			return
+		}
+		holidayId , _ := strconv.Atoi(id)
+		holiday := model.Holiday{HolidayType:holiday_type, Name:holiday_name}
+		err := holidaySvc.UpdateById(holiday, holidayId)
 		if err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return

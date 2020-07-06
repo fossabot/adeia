@@ -13,6 +13,8 @@ const (
 	queryHolidayByYear                = "SELECT * FROM holiday WHERE EXTRACT(YEAR FROM date)=$1"
 	queryHolidayByYearAndMonth        = "SELECT * FROM holiday WHERE EXTRACT(YEAR FROM date)=$1 and EXTRACT(MONTH from date)=$2"
 	queryHolidayByYearAndMonthAndDate = "SELECT * FROM holiday WHERE EXTRACT(YEAR FROM date)=$1 and EXTRACT(MONTH from date)=$2 and EXTRACT(DAY from date)=$3"
+	queryUpdateNameAndType            = "UPDATE holiday SET name = :name AND type = :type where id = :id RETURNING id"
+	queryDeleteById					  = "DELETE FROM holiday where id = :id RETURNING id"
 )
 
 // HolidayRepoImpl is an implementation of HolidayRepo for Postgres.
@@ -74,4 +76,28 @@ func (i *HolidayRepoImpl) get(query string, args ...interface{}) ([]*model.Holid
 		return nil, err
 	}
 	return u, nil
+}
+
+func (i *HolidayRepoImpl) UpdateNameAndType(holiday model.Holiday) error{
+	rows, err := i.db.NamedExec(queryUpdateNameAndType, holiday)
+	rowsAffected, _ := rows.RowsAffected()
+	if rowsAffected == 1{
+		return nil
+	}
+	if rowsAffected == 0{
+		return sql.ErrNoRows
+	}
+	return err
+}
+
+func (i *HolidayRepoImpl) DeletedById(holiday model.Holiday) error{
+	rows, err := i.db.NamedExec(queryDeleteById, holiday);
+	rowsAffected, _ := rows.RowsAffected()
+	if rowsAffected == 1{
+		return nil
+	}
+	if rowsAffected == 0{
+		return sql.ErrNoRows
+	}
+	return err
 }

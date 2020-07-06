@@ -22,5 +22,7 @@ type HolidayRepo interface {
 	GetByYearAndMonth(year, month int) ([]*model.Holiday, error)
 	GetByYMD(year, month, date int) ([]*model.Holiday, error)
 	GetByID(id int) (*model.Holiday, error)
+	UpdateNameAndType(holiday model.Holiday) error
+	DeletedById(holiday model.Holiday) error
 	Insert(u *model.Holiday) (int, error)
 }
