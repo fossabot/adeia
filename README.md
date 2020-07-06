@@ -1,7 +1,7 @@
 adeia-api
 ======================
-![build](https://github.com/arkn98/adeia-api/workflows/build/badge.svg)
-![rests](https://github.com/arkn98/adeia-api/workflows/tests/badge.svg)
+[![build](https://github.com/arkn98/adeia-api/workflows/build/badge.svg)](https://github.com/arkn98/adeia-api/actions?query=workflow%3Abuild)
+[![tests](https://github.com/arkn98/adeia-api/workflows/tests/badge.svg)](https://github.com/arkn98/adeia-api/actions?query=workflow%3Atests)
 [![Coverage Status](https://coveralls.io/repos/github/arkn98/adeia-api/badge.svg?branch=develop)](https://coveralls.io/github/arkn98/adeia-api?branch=develop)
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 [![Go Report Card](https://goreportcard.com/badge/github.com/arkn98/adeia-api)](https://goreportcard.com/report/github.com/arkn98/adeia-api)
