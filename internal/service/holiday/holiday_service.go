@@ -6,6 +6,7 @@ import (
 	"adeia-api/internal/model"
 	"adeia-api/internal/repo"
 	"adeia-api/internal/util"
+	"adeia-api/internal/util/constants"
 	"adeia-api/internal/util/log"
 	"database/sql"
 	"time"
@@ -13,7 +14,7 @@ import (
 
 type Service interface {
 	CreateHoliday(holiday model.Holiday) (*model.Holiday, error)
-	GetHolidayByDate(date time.Time, timeUnit model.TimeUnit) ([]*model.Holiday, error)
+	GetHolidayByDate(date time.Time, timeUnit constants.TimeUnit) ([]*model.Holiday, error)
 	GetHolidayById(id int) (*model.Holiday, error)
 	UpdateById(holiday model.Holiday, id int) error
 	DeleteById(id int) error
@@ -45,20 +46,20 @@ func (i *Impl) CreateHoliday(holiday model.Holiday) (*model.Holiday, error) {
 	return &holiday, err
 }
 
-func (i *Impl) GetHolidayByDate(date time.Time, granularity model.TimeUnit) ([]*model.Holiday, error) {
+func (i *Impl) GetHolidayByDate(date time.Time, granularity constants.TimeUnit) ([]*model.Holiday, error) {
 	var err error
 	var holiday []*model.Holiday
 	switch granularity {
-	case model.Year:
+	case constants.Year:
 		holiday, err = i.holidayRepo.GetByYear(date.Year())
 		break
-	case model.Month:
+	case constants.Month:
 		holiday, err = i.holidayRepo.GetByYearAndMonth(date.Year(), int(date.Month()))
 		break
-	case model.DateOfMonth:
+	case constants.DateOfMonth:
 		holiday, err = i.holidayRepo.GetByYMD(util.GetYMDFromTime(date))
 		break
-	case model.Epoch:
+	case constants.Epoch:
 		holiday, err = i.holidayRepo.GetByEpoch(date.Unix())
 		break
 	}

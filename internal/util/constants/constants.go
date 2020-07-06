@@ -1,5 +1,6 @@
 package constants
 
+type TimeUnit string
 const (
 	// APIVersion represents the current major version of the API.
 	APIVersion = "v1"
@@ -49,4 +50,10 @@ const (
 	EnvCacheHostKey = EnvPrefix + "_CACHE_HOST"
 	// EnvCachePortKey is the env key for redis port.
 	EnvCachePortKey = EnvPrefix + "_CACHE_PORT"
+
+	Epoch       TimeUnit = "Epoch"
+	Month       TimeUnit = "Month"
+	DateOfMonth TimeUnit = "DateOfMonth"
+	Year        TimeUnit = "Year"
+
 )

@@ -5,6 +5,7 @@ import (
 	"adeia-api/internal/api/route"
 	"adeia-api/internal/model"
 	"adeia-api/internal/util"
+	"adeia-api/internal/util/constants"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/julienschmidt/httprouter"
@@ -88,7 +89,7 @@ func GetHolidayByYear() http.HandlerFunc {
 			return
 		}
 		year,_ := strconv.Atoi(param)
-		holidays, err := holidaySvc.GetHolidayByDate(util.GetTime(year,1,1), model.Year)
+		holidays, err := holidaySvc.GetHolidayByDate(util.GetTime(year,1,1), constants.Year)
 		if err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
@@ -122,7 +123,7 @@ func GetHolidayByYearAndMonth() http.HandlerFunc {
 		month, _ := strconv.Atoi(params.ByName("month"))
 
 
-		holidays, err := holidaySvc.GetHolidayByDate(util.GetTime(year,month,1), model.Month)
+		holidays, err := holidaySvc.GetHolidayByDate(util.GetTime(year,month,1), constants.Month)
 		if err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
@@ -161,7 +162,7 @@ func GetHolidayByDate() http.HandlerFunc {
 		month, _ := strconv.Atoi(params.ByName("month"))
 		date, _ := strconv.Atoi(params.ByName("date"))
 
-		holidays, err := holidaySvc.GetHolidayByDate(util.GetTime(year,month,date), model.DateOfMonth)
+		holidays, err := holidaySvc.GetHolidayByDate(util.GetTime(year,month,date), constants.DateOfMonth)
 		if err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
@@ -226,10 +227,10 @@ func DeleteHolidayById() http.HandlerFunc {
 }
 
 func UpdateHolidayById() http.HandlerFunc {
-	validator := func(holiday model.Holiday) *util.Validation {
+	validator := func(holiday model.Holiday, id string) *util.Validation {
 		return &util.Validation{
 			Errors: validation.Errors{
-				"id": validation.Validate(holiday.ID,
+				"id": validation.Validate(id,
 					validation.Required,
 					is.UTFNumeric,
 				),
@@ -250,12 +251,12 @@ func UpdateHolidayById() http.HandlerFunc {
 		id := httprouter.ParamsFromContext(request.Context()).ByName("id")
 		holiday_name := httprouter.ParamsFromContext(request.Context()).ByName("name")
 		holiday_type := httprouter.ParamsFromContext(request.Context()).ByName("type")
-		if err := validator(id).Validate(); err != nil {
+		holiday := model.Holiday{HolidayType:holiday_type, Name:holiday_name}
+		if err := validator(holiday,id).Validate(); err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
 			return
 		}
 		holidayId , _ := strconv.Atoi(id)
-		holiday := model.Holiday{HolidayType:holiday_type, Name:holiday_name}
 		err := holidaySvc.UpdateById(holiday, holidayId)
 		if err != nil {
 			util.RespondWithError(writer, err.(util.ResponseError))
