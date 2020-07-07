@@ -1,8 +1,6 @@
 package util
 
-import (
-	"github.com/go-ozzo/ozzo-validation/v4"
-)
+import "github.com/go-ozzo/ozzo-validation/v4"
 
 // Validation represents a map of validation rules.
 type Validation struct {
