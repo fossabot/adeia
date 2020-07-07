@@ -18,7 +18,7 @@ type Errors map[string]error
 // before actually executing the wrapped rule. For example, with WrappedRule, a custom validator
 // can be created that allows only "a space-separated UTFLetter" string.
 type WrappedRule struct {
-	rule                validation.Rule
+	rules               []validation.Rule
 	allowWhitespace     bool
 	allowSpecialChars   bool
 	allowedSpecialChars string
@@ -38,17 +38,19 @@ func (w *WrappedRule) Validate(value interface{}) error {
 		return err
 	}
 
-	// strip whitespace
-	if w.allowWhitespace {
+	switch {
+	case w.allowWhitespace:
 		str = util.StripWhitespace(str)
-	}
-	// strip chars
-	if w.allowSpecialChars {
+		fallthrough
+	case w.allowSpecialChars:
 		str = util.StripChars(str, w.allowedSpecialChars)
+		fallthrough
+	default:
+		break
 	}
 
 	// run the actual rule
-	return w.rule.Validate(str)
+	return validation.Validate(str, w.rules...)
 }
 
 // Validation represents a map of validation rules.
@@ -71,24 +73,24 @@ func (v *Validation) Validate() error {
 	return util.ErrValidationFailed.ValidationErr(e)
 }
 
-func WithWhitespace(r validation.Rule) validation.Rule {
+func WithWhitespace(rules ...validation.Rule) validation.Rule {
 	return &WrappedRule{
-		rule:            r,
+		rules:           rules,
 		allowWhitespace: true,
 	}
 }
 
-func WithSpecialChars(chars string, r validation.Rule) validation.Rule {
+func WithSpecialChars(chars string, rules ...validation.Rule) validation.Rule {
 	return &WrappedRule{
-		rule:                r,
+		rules:               rules,
 		allowSpecialChars:   true,
 		allowedSpecialChars: chars,
 	}
 }
 
-func WithWhiteAndSpecialChars(chars string, r validation.Rule) validation.Rule {
+func WithWhiteAndSpecialChars(chars string, rules ...validation.Rule) validation.Rule {
 	return &WrappedRule{
-		rule:                r,
+		rules:               rules,
 		allowWhitespace:     true,
 		allowSpecialChars:   true,
 		allowedSpecialChars: chars,
@@ -110,7 +112,7 @@ var NamePolicy = []validation.Rule{
 var DesignationPolicy = []validation.Rule{
 	validation.Required,
 	validation.RuneLength(2, 255),
-	WithWhiteAndSpecialChars("-._~", is.Alphanumeric),
+	WithWhiteAndSpecialChars(".+-/_&()[]{}", is.Alphanumeric),
 }
 
 var EmailPolicy = []validation.Rule{

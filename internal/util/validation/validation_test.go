@@ -99,7 +99,7 @@ func TestValidateDesignation(t *testing.T) {
 		{"foo", nil, "should not return err on normal designations"},
 		{"foo bar", nil, "designations can contain spaces"},
 		{"Administrator Level 2", nil, "designations can contain numbers"},
-		{"Administrator - Level 2", nil, "designations can contain special characters .-~_"},
+		{"Administrator-Lvl 2 (junior & intermediate)", nil, "designations can contain special characters .+-/_&()[]{}"},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.msg, func(t *testing.T) {
@@ -121,7 +121,7 @@ func TestValidateDesignation(t *testing.T) {
 			"designation too short",
 		},
 		{"", validation.ErrRequired, "designation cannot be empty"},
-		{"Administrator + Level 2", is.ErrAlphanumeric, "designation cannot contain special characters other than .-~_"},
+		{"Administrator * Level 2", is.ErrAlphanumeric, "designation cannot contain special characters other than .+-/_&()[]{}"},
 		{"田中太郎", is.ErrAlphanumeric, "designation cannot contain other language characters"},
 	}
 	for _, tc := range errTestCases {
