@@ -1,20 +1,21 @@
 package repo
 
 import (
+	"database/sql"
+
 	"adeia-api/internal/db"
 	"adeia-api/internal/model"
-	"database/sql"
 )
 
 const (
-	queryHolidayInsert                = "INSERT INTO holiday (date, name, type) VALUES (:date, :name, :type) RETURNING id"
-	queryHolidayById                  = "SELECT * FROM holiday WHERE id=$1"
-	queryHolidayByDate                = "SELECT * FROM holiday WHERE EXTRACT(EPOCH FROM date)=$1"
-	queryHolidayByYear                = "SELECT * FROM holiday WHERE EXTRACT(YEAR FROM date)=$1"
-	queryHolidayByYearAndMonth        = "SELECT * FROM holiday WHERE EXTRACT(YEAR FROM date)=$1 and EXTRACT(MONTH from date)=$2"
-	queryHolidayByYearAndMonthAndDate = "SELECT * FROM holiday WHERE EXTRACT(YEAR FROM date)=$1 and EXTRACT(MONTH from date)=$2 and EXTRACT(DAY from date)=$3"
-	queryUpdateNameAndType            = "UPDATE holiday SET name = :name AND type = :type where id = :id RETURNING id"
-	queryDeleteById                   = "DELETE FROM holiday where id = :id RETURNING id"
+	queryHolidayInsert                = "INSERT INTO holidays (date, name, type) VALUES (:date, :name, :type) RETURNING id"
+	queryHolidayByID                  = "SELECT * FROM holidays WHERE id=$1"
+	queryHolidayByDate                = "SELECT * FROM holidays WHERE EXTRACT(EPOCH FROM date)=$1"
+	queryHolidayByYear                = "SELECT * FROM holidays WHERE EXTRACT(YEAR FROM date)=$1"
+	queryHolidayByYearAndMonth        = "SELECT * FROM holidays WHERE EXTRACT(YEAR FROM date)=$1 AND EXTRACT(MONTH FROM date)=$2"
+	queryHolidayByYearAndMonthAndDate = "SELECT * FROM holidays WHERE EXTRACT(YEAR FROM date)=$1 AND EXTRACT(MONTH FROM date)=$2 AND EXTRACT(DAY FROM date)=$3"
+	queryUpdateNameAndType            = "UPDATE holidays SET name=$1, type=$2 WHERE id=$3"
+	queryDeleteByID                   = "DELETE FROM holidays WHERE id=$1"
 )
 
 // HolidayRepoImpl is an implementation of HolidayRepo for Postgres.
@@ -22,11 +23,13 @@ type HolidayRepoImpl struct {
 	db db.DB
 }
 
+// NewHolidayRepo creates a new HolidayRepo.
 func NewHolidayRepo(d db.DB) HolidayRepo {
 	return &HolidayRepoImpl{d}
 }
 
-func (i *HolidayRepoImpl) Insert(u *model.Holiday) (int, error) {
+// Insert inserts a holiday using the db connection instance and returns the LastInsertID.
+func (i *HolidayRepoImpl) Insert(h *model.Holiday) (int, error) {
 	stmt, err := i.db.PrepareNamed(queryHolidayInsert)
 	if err != nil {
 		return 0, err
@@ -34,15 +37,16 @@ func (i *HolidayRepoImpl) Insert(u *model.Holiday) (int, error) {
 	defer stmt.Close()
 
 	var lastInsertID int
-	if err := stmt.Get(&lastInsertID, u); err != nil {
+	if err := stmt.Get(&lastInsertID, h); err != nil {
 		return 0, err
 	}
 	return lastInsertID, nil
 }
 
+// GetByID gets a holiday from db using the id.
 func (i *HolidayRepoImpl) GetByID(id int) (*model.Holiday, error) {
 	var u model.Holiday
-	if err := i.db.Get(&u, queryHolidayById, id); err != nil {
+	if err := i.db.Get(&u, queryHolidayByID, id); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -51,18 +55,22 @@ func (i *HolidayRepoImpl) GetByID(id int) (*model.Holiday, error) {
 	return &u, nil
 }
 
+// GetByEpoch gets holidays by epoch.
 func (i *HolidayRepoImpl) GetByEpoch(epoch int64) ([]*model.Holiday, error) {
 	return i.get(queryHolidayByDate, epoch)
 }
 
+// GetByYear gets holidays by year.
 func (i *HolidayRepoImpl) GetByYear(year int) ([]*model.Holiday, error) {
 	return i.get(queryHolidayByYear, year)
 }
 
+// GetByYearAndMonth gets holidays by year and month.
 func (i *HolidayRepoImpl) GetByYearAndMonth(year, month int) ([]*model.Holiday, error) {
 	return i.get(queryHolidayByYearAndMonth, year, month)
 }
 
+// GetByYMD gets holidays by year, month and date.
 func (i *HolidayRepoImpl) GetByYMD(year, month, dateOfMonth int) ([]*model.Holiday, error) {
 	return i.get(queryHolidayByYearAndMonthAndDate, year, month, dateOfMonth)
 }
@@ -78,26 +86,30 @@ func (i *HolidayRepoImpl) get(query string, args ...interface{}) ([]*model.Holid
 	return u, nil
 }
 
-func (i *HolidayRepoImpl) UpdateNameAndType(holiday model.Holiday) error {
-	rows, err := i.db.NamedExec(queryUpdateNameAndType, holiday)
-	rowsAffected, _ := rows.RowsAffected()
-	if rowsAffected == 1 {
-		return nil
+// UpdateNameAndType updates a holiday's name and type.
+func (i *HolidayRepoImpl) UpdateNameAndType(id int, name, holidayType string) (int64, error) {
+	result, err := i.db.Exec(queryUpdateNameAndType, name, holidayType, id)
+	if err != nil {
+		return 0, err
 	}
-	if rowsAffected == 0 {
-		return sql.ErrNoRows
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
 	}
-	return err
+	return rowsAffected, nil
 }
 
-func (i *HolidayRepoImpl) DeletedById(holiday model.Holiday) error {
-	rows, err := i.db.NamedExec(queryDeleteById, holiday)
-	rowsAffected, _ := rows.RowsAffected()
-	if rowsAffected == 1 {
-		return nil
+// DeletedByID deletes a holiday by id.
+func (i *HolidayRepoImpl) DeletedByID(id int) (int64, error) {
+	result, err := i.db.Exec(queryDeleteByID, id)
+	if err != nil {
+		return 0, err
 	}
-	if rowsAffected == 0 {
-		return sql.ErrNoRows
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
 	}
-	return err
+	return rowsAffected, nil
 }

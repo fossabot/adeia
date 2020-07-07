@@ -20,7 +20,7 @@ func UserRoutes() []*route.Route {
 	allowAuthenticated := middleware.NewChain(middleware.AllowAuthenticated(sessionSvc, usrSvc, true))
 	allowUnauthenticated := middleware.NewChain(middleware.AllowAuthenticated(sessionSvc, usrSvc, false))
 
-	routes := []*route.Route{
+	return []*route.Route{
 		// create new user
 		route.New(http.MethodPost, "/users", CreateUser(), middleware.Nil),
 		// get user
@@ -34,7 +34,6 @@ func UserRoutes() []*route.Route {
 		// logout user
 		route.New(http.MethodPost, "/users/:id/sessions/destroy", LogoutUser(), allowAuthenticated),
 	}
-	return routes
 }
 
 // LoginUser logs in an user.

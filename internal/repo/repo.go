@@ -1,8 +1,6 @@
 package repo
 
-import (
-	"adeia-api/internal/model"
-)
+import "adeia-api/internal/model"
 
 // UserRepo is an interface that represents the list of functions that need to be
 // implemented for the User model, by the repo.
@@ -16,13 +14,15 @@ type UserRepo interface {
 	DeleteByEmpID(empID string) (rowsAffected int64, err error)
 }
 
+// HolidayRepo is an interface that represents the list of functions that need to be
+// implemented for the Holiday model, by the repo.
 type HolidayRepo interface {
 	GetByEpoch(epoch int64) ([]*model.Holiday, error)
 	GetByYear(year int) ([]*model.Holiday, error)
 	GetByYearAndMonth(year, month int) ([]*model.Holiday, error)
 	GetByYMD(year, month, date int) ([]*model.Holiday, error)
 	GetByID(id int) (*model.Holiday, error)
-	UpdateNameAndType(holiday model.Holiday) error
-	DeletedById(holiday model.Holiday) error
+	UpdateNameAndType(id int, name, holidayType string) (int64, error)
+	DeletedByID(id int) (int64, error)
 	Insert(u *model.Holiday) (int, error)
 }

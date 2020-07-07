@@ -12,7 +12,6 @@ require (
 	github.com/jackc/pgx/v4 v4.6.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/jordan-wright/email v0.0.0-20200602115436-fd8a7622303e
-	github.com/julienschmidt/httprouter v1.2.0
 	github.com/lib/pq v1.5.2 // indirect
 	github.com/mediocregopher/radix/v3 v3.5.1
 	github.com/spf13/viper v1.7.0
