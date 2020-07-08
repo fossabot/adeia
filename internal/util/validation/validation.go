@@ -2,6 +2,7 @@ package validation
 
 import (
 	"errors"
+	"time"
 
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/crypto"
@@ -73,6 +74,9 @@ func (v *Validation) Validate() error {
 	return util.ErrValidationFailed.ValidationErr(e)
 }
 
+// WithWhitespace is a wrapped rule that allows the use of whitespaces along with
+// the wrapped rule. Basically, it strips of any whitespace before passing it to
+// the wrapped rule for validation.
 func WithWhitespace(rules ...validation.Rule) validation.Rule {
 	return &WrappedRule{
 		rules:           rules,
@@ -80,6 +84,9 @@ func WithWhitespace(rules ...validation.Rule) validation.Rule {
 	}
 }
 
+// WithSpecialChars is a wrapped rule that allows the use of specified chars along with
+// the wrapped rule. Basically, it strips of any of the specified chars before passing it to
+// the wrapped rule for validation.
 func WithSpecialChars(chars string, rules ...validation.Rule) validation.Rule {
 	return &WrappedRule{
 		rules:               rules,
@@ -88,6 +95,9 @@ func WithSpecialChars(chars string, rules ...validation.Rule) validation.Rule {
 	}
 }
 
+// WithWhiteAndSpecialChars is a wrapped rule that allows the use of whitespaces and specified
+// chars along with the wrapped rule. Basically, it strips of any of the specified chars
+// before passing it to the wrapped rule for validation.
 func WithWhiteAndSpecialChars(chars string, rules ...validation.Rule) validation.Rule {
 	return &WrappedRule{
 		rules:               rules,
@@ -101,6 +111,7 @@ func WithWhiteAndSpecialChars(chars string, rules ...validation.Rule) validation
 // Policies for common fields
 // ==========
 
+// NamePolicy is the validation policy for user's name.
 var NamePolicy = []validation.Rule{
 	validation.Required,
 	validation.RuneLength(1, 255),
@@ -109,12 +120,14 @@ var NamePolicy = []validation.Rule{
 	// and https://shinesolutions.com/2018/01/08/falsehoods-programmers-believe-about-names-with-examples/
 }
 
+// DesignationPolicy is the validation policy for user's designation.
 var DesignationPolicy = []validation.Rule{
 	validation.Required,
 	validation.RuneLength(2, 255),
 	WithWhiteAndSpecialChars(".+-/_&()[]{}", is.Alphanumeric),
 }
 
+// EmailPolicy is the validation policy for user's email.
 var EmailPolicy = []validation.Rule{
 	validation.Required,
 	validation.RuneLength(3, 120),
@@ -126,17 +139,24 @@ var empIDPolicyCore = []validation.Rule{
 	is.Alphanumeric,
 }
 
+// EmpIDPolicy is the validation policy for user's employee ID.
 var EmpIDPolicy = append([]validation.Rule{validation.Required}, empIDPolicyCore...)
 
+// EmpIDPolicyOptional is a special EmpIDPolicy that validates employee ID only if
+// it's not empty (meaning, employee ID is optional). This is used in CreateUser controller
+// handle.
 func EmpIDPolicyOptional(value interface{}) []validation.Rule {
 	return append([]validation.Rule{validation.Required.When(value != "")}, empIDPolicyCore...)
 }
 
+// PwdPolicy is the validation policy for user's password.
 var PwdPolicy = []validation.Rule{
 	validation.Required,
 	validation.RuneLength(12, 128),
 }
 
+// PwdStrengthPolicy is the validation policy for the strength user's password. This
+// in combination with PwdPolicy, is used during user-onboarding.
 var PwdStrengthPolicy = []validation.Rule{
 	validation.By(func(value interface{}) error {
 		s, _ := value.(string)
@@ -147,6 +167,10 @@ var PwdStrengthPolicy = []validation.Rule{
 	}),
 }
 
+// ConfirmPwdPolicy is the validation policy for the confirm-password field. This policy
+// just checks whether the value is equal to the password. DO NOT use this separately, because
+// it does not validate other aspects of a password. This must be used in combination
+// with the PwdPolicy.
 func ConfirmPwdPolicy(password string) []validation.Rule {
 	return []validation.Rule{
 		validation.By(func(value interface{}) error {
@@ -159,44 +183,133 @@ func ConfirmPwdPolicy(password string) []validation.Rule {
 	}
 }
 
+// ResourceNamePolicy is the validation policy for names of resources, like name
+// of holiday, etc.
+var ResourceNamePolicy = []validation.Rule{
+	validation.Required,
+	validation.RuneLength(2, 255),
+	WithWhiteAndSpecialChars(".+-/_&()[]{}", is.Alphanumeric),
+}
+
+// ResourceIDPolicy is the validation policy for ids of resources. This is used
+// to validate db's auto-increment ids.
+var ResourceIDPolicy = []validation.Rule{
+	validation.Required,
+	is.Digit,
+	validation.Min(1),
+}
+
+// DatePolicy is the validation policy for a date string.
+var DatePolicy = []validation.Rule{
+	validation.Required,
+	validation.Date(time.RFC3339),
+}
+
+// YearPolicy is the validation policy for a year value. A year must contain exactly
+// four digits.
+var YearPolicy = []validation.Rule{
+	validation.Required,
+	is.Digit,
+	validation.Min(4),
+	validation.Max(4),
+}
+
+// MonthPolicy is the validation policy for a month value. It must only be between 1-12.
+var MonthPolicy = []validation.Rule{
+	validation.Required,
+	is.Digit,
+	validation.Min(1),
+	validation.Max(12),
+}
+
+// DayPolicy is the validation policy for a day of month value. It must only be between 1-31.
+var DayPolicy = []validation.Rule{
+	validation.Required,
+	is.Digit,
+	validation.Min(1),
+	validation.Max(31),
+}
+
 // ==========
 // Validation funcs
 // ==========
 
+// ValidateName validates user names.
 func ValidateName(value string) error {
 	return validation.Validate(value, NamePolicy...)
 }
 
+// ValidateDesignation validates user designations.
 func ValidateDesignation(value string) error {
 	return validation.Validate(value, DesignationPolicy...)
 }
 
+// ValidateEmail validates user email IDs.
 func ValidateEmail(value string) error {
 	return validation.Validate(value, EmailPolicy...)
 }
 
+// ValidateLoginPwd validates the password entered during login (without strength
+// estimation).
 func ValidateLoginPwd(value string) error {
 	return validation.Validate(value, PwdPolicy...)
 }
 
+// ValidateNewPwd validates the password entered during user-onboarding (with strength
+// estimation).
 func ValidateNewPwd(value string) error {
 	policy := append(PwdPolicy, PwdStrengthPolicy...)
 	return validation.Validate(value, policy...)
 }
 
+// ValidateConfirmPwd validates the confirm-password entered during user-onboarding. The value
+// must be equal to the password. No strength estimation is done here.
 func ValidateConfirmPwd(value string, password string) error {
 	policy := append(PwdPolicy, ConfirmPwdPolicy(password)...)
 	return validation.Validate(value, policy...)
 }
 
+// ValidateEmpID validates user employee IDs.
 func ValidateEmpID(value string) error {
 	return validation.Validate(value, EmpIDPolicy...)
 }
 
+// ValidateEmpIDOptional validates the optional employee ID entered during user-onboarding.
 func ValidateEmpIDOptional(value interface{}) error {
 	return validation.Validate(value, EmpIDPolicyOptional(value)...)
 }
 
+// ValidateCustom is used to write custom validation rules for one-off use-cases.
 func ValidateCustom(value interface{}, rules ...validation.Rule) error {
 	return validation.Validate(value, rules...)
+}
+
+// ValidateResourceName validates resource names.
+func ValidateResourceName(value string) error {
+	return validation.Validate(value, ResourceNamePolicy...)
+}
+
+// ValidateResourceID validates resource ids.
+func ValidateResourceID(value string) error {
+	return validation.Validate(value, ResourceIDPolicy...)
+}
+
+// ValidateDate validates a date string.
+func ValidateDate(value string) error {
+	return validation.Validate(value, DatePolicy...)
+}
+
+// ValidateYear validates a year value (eg., 2012).
+func ValidateYear(value string) error {
+	return validation.Validate(value, YearPolicy...)
+}
+
+// ValidateMonth validates a month value (eg., 4).
+func ValidateMonth(value string) error {
+	return validation.Validate(value, MonthPolicy...)
+}
+
+// ValidateDay validates a day of month value (eg., 24).
+func ValidateDay(value string) error {
+	return validation.Validate(value, DayPolicy...)
 }

@@ -60,7 +60,7 @@ func (i *Impl) GetHolidaysByDate(date time.Time, granularity constants.TimeUnit)
 		holidays, err = i.holidayRepo.GetByYear(date.Year())
 	case constants.Month:
 		holidays, err = i.holidayRepo.GetByYearAndMonth(date.Year(), int(date.Month()))
-	case constants.DateOfMonth:
+	case constants.DayOfMonth:
 		holidays, err = i.holidayRepo.GetByYMD(util.GetYMDFromTime(date))
 	case constants.Epoch:
 		holidays, err = i.holidayRepo.GetByEpoch(date.Unix())

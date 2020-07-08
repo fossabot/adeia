@@ -7,7 +7,7 @@ func GetYMDFromTime(time time.Time) (year, month, day int) {
 	return time.Year(), int(time.Month()), time.Day()
 }
 
-// GetTime returns time.Time from the provided year, month and date.
-func GetTime(year, month, date int) time.Time {
-	return time.Date(year, time.Month(month), date, 0, 0, 0, 0, time.UTC)
+// GetTime returns time.Time from the provided year, month and day.
+func GetTime(year, month, day int) time.Time {
+	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
 }
