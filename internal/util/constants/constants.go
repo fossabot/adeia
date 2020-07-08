@@ -1,5 +1,8 @@
 package constants
 
+// TimeUnit is used to distinguish between different time formats in requests.
+type TimeUnit string
+
 const (
 	// APIVersion represents the current major version of the API.
 	APIVersion = "v1"
@@ -49,4 +52,17 @@ const (
 	EnvCacheHostKey = EnvPrefix + "_CACHE_HOST"
 	// EnvCachePortKey is the env key for redis port.
 	EnvCachePortKey = EnvPrefix + "_CACHE_PORT"
+
+	// ==========
+	// General constants
+	// ==========
+
+	// Epoch represents the TimeUnit epoch.
+	Epoch TimeUnit = "Epoch"
+	// Month represents the TimeUnit Month.
+	Month TimeUnit = "Month"
+	// DateOfMonth represents the TimeUnit DateOfMonth.
+	DateOfMonth TimeUnit = "DateOfMonth"
+	// Year represents the TimeUnit Year.
+	Year TimeUnit = "Year"
 )

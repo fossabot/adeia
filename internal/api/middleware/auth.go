@@ -13,6 +13,8 @@ import (
 )
 
 // AllowAuthenticated is a middleware that allows users based on their auth state.
+// If `allowAuthenticated` is true, it will only allow authenticated users through and if
+// `allowAuthenticated` is set to false, it will only allow unauthenticated users through.
 func AllowAuthenticated(sessionSvc session.Service, usrSvc user.Service, allowAuthenticated bool) Func {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -20,16 +22,19 @@ func AllowAuthenticated(sessionSvc session.Service, usrSvc user.Service, allowAu
 			userID, err := sessionSvc.GetAndRefresh(r)
 			if !allowAuthenticated {
 				if err == nil {
+					// user is authenticated
 					log.Debugf("user is authenticated: %v", err)
 					util.RespondWithError(w, util.ErrBadRequest.Msg("already authenticated"))
 					return
 				}
 
+				// user is not authenticated
 				next.ServeHTTP(w, r)
 				return
 			}
 
 			if err != nil {
+				// user is not authenticated
 				log.Debugf("cannot get session cookie: %v", err)
 				util.RespondWithError(w, util.ErrUnauthorized)
 				return

@@ -46,8 +46,8 @@ type Impl struct {
 	maxCookieAge int
 }
 
-// NewService returns a new session service.
-func NewService(store Store) Service {
+// New returns a new session service.
+func New(store Store) Service {
 	return &Impl{
 		store:        store,
 		cookieName:   constants.SessionCookieKey,
