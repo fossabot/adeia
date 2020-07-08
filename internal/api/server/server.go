@@ -18,7 +18,7 @@ import (
 	"adeia-api/internal/util/mail"
 	"adeia-api/internal/util/ratelimiter"
 
-	"github.com/arkn98/httprouter"
+	"github.com/go-chi/chi"
 	config "github.com/spf13/viper"
 )
 
@@ -29,7 +29,7 @@ type Server struct {
 	db               db.DB
 	globalMiddleware middleware.FuncChain
 	mailer           mail.Mailer
-	srv              *httprouter.RouteGroup
+	srv              chi.Router
 }
 
 // New returns a new Server with the passed-in config.
@@ -42,7 +42,7 @@ func New(d db.DB, c cache.Cache, m mail.Mailer) *Server {
 		db:               d,
 		globalMiddleware: middleware.NewChain(middleware.RateLimiter(l)),
 		mailer:           m,
-		srv:              httprouter.New().NewGroup("/" + constants.APIVersion),
+		srv:              chi.NewRouter(),
 	}
 }
 
@@ -51,8 +51,11 @@ func (s *Server) AddRoutes() {
 	log.Debug("registering handles to router")
 
 	controller.Init(s.db, s.cache, s.mailer)
-	route.BindRoutes(s.srv, controller.UserRoutes())
-	route.BindRoutes(s.srv, controller.HolidayRoutes())
+
+	s.srv.Route("/" + constants.APIVersion, func(r chi.Router) {
+		route.BindRoutes(r, controller.UserRoutes())
+		route.BindRoutes(r, controller.HolidayRoutes())
+	})
 }
 
 // Serve starts the server on the host and port, specified in the config.
@@ -62,7 +65,7 @@ func (s *Server) Serve() {
 		// TODO: add timeouts
 		// TODO: add TLS support
 		Addr:    addr,
-		Handler: s.globalMiddleware.Compose(s.srv.GetRouter()),
+		Handler: s.globalMiddleware.Compose(s.srv),
 	}
 
 	// make chan for interrupts

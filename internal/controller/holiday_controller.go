@@ -11,7 +11,7 @@ import (
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/constants"
 
-	"github.com/arkn98/httprouter"
+	"github.com/go-chi/chi"
 	"github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
@@ -20,12 +20,12 @@ import (
 func HolidayRoutes() []*route.Route {
 	return []*route.Route{
 		route.New(http.MethodPost, "/holidays", CreateHoliday(), middleware.Nil),
-		route.New(http.MethodGet, "/holidays/year/:year/month/:month", GetHolidaysByYearAndMonth(), middleware.Nil),
-		route.New(http.MethodGet, "/holidays/year/:year", GetHolidaysByYear(), middleware.Nil),
-		route.New(http.MethodGet, "/holidays/year/:year/month/:month/date/:date", GetHolidaysByDate(), middleware.Nil),
-		route.New(http.MethodGet, "/holidays/id/:id", GetHolidayByID(), middleware.Nil),
-		route.New(http.MethodPut, "/holidays/id/:id", UpdateHolidayByID(), middleware.Nil),
-		route.New(http.MethodDelete, "/holidays/id/:id", DeleteHolidayByID(), middleware.Nil),
+		route.New(http.MethodGet, "/holidays/year/{year}/month/{month}", GetHolidaysByYearAndMonth(), middleware.Nil),
+		route.New(http.MethodGet, "/holidays/year/{year}", GetHolidaysByYear(), middleware.Nil),
+		route.New(http.MethodGet, "/holidays/year/{year}/month/{month}/date/{date}", GetHolidaysByDate(), middleware.Nil),
+		route.New(http.MethodGet, "/holidays/{id}", GetHolidayByID(), middleware.Nil),
+		route.New(http.MethodPut, "/holidays/{id}", UpdateHolidayByID(), middleware.Nil),
+		route.New(http.MethodDelete, "/holidays/{id}", DeleteHolidayByID(), middleware.Nil),
 	}
 }
 
@@ -98,7 +98,7 @@ func GetHolidaysByYear() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		year := httprouter.ParamsFromContext(r.Context()).ByName("year")
+		year := chi.URLParam(r, "year")
 		if err := validator(year).Validate(); err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
@@ -133,9 +133,8 @@ func GetHolidaysByYearAndMonth() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		params := httprouter.ParamsFromContext(r.Context())
-		year := params.ByName("year")
-		month := params.ByName("month")
+		year := chi.URLParam(r, "year")
+		month := chi.URLParam(r, "month")
 		if err := validator(year, month).Validate(); err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
@@ -175,10 +174,9 @@ func GetHolidaysByDate() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		params := httprouter.ParamsFromContext(r.Context())
-		year := params.ByName("year")
-		month := params.ByName("month")
-		date := params.ByName("date")
+		year := chi.URLParam(r, "year")
+		month := chi.URLParam(r, "month")
+		date := chi.URLParam(r, "date")
 		if err := validator(year, month, date).Validate(); err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
@@ -210,7 +208,7 @@ func GetHolidayByID() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+		id := chi.URLParam(r, "id")
 		if err := validator(id).Validate(); err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
@@ -240,7 +238,7 @@ func DeleteHolidayByID() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+		id := chi.URLParam(r, "id")
 		if err := validator(id).Validate(); err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
@@ -285,7 +283,7 @@ func UpdateHolidayByID() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+		id := chi.URLParam(r, "id")
 		var rBody request
 		if err := util.DecodeBodyAndRespond(w, r, &rBody); err != nil {
 			return

@@ -5,7 +5,7 @@ import (
 
 	"adeia-api/internal/api/middleware"
 
-	"github.com/arkn98/httprouter"
+	"github.com/go-chi/chi"
 )
 
 // Route represents an API route containing a path, method, handler and a
@@ -29,7 +29,7 @@ func New(method, path string, handler http.HandlerFunc, middleware middleware.Fu
 
 // BindRoutes binds/mounts the provided routes to the router and, also composes
 // (adds) all the middleware funcs (in order) to the handler.
-func BindRoutes(router *httprouter.RouteGroup, routes []*Route) {
+func BindRoutes(router chi.Router, routes []*Route) {
 	for _, route := range routes {
 		handler := route.Handler
 
@@ -37,6 +37,6 @@ func BindRoutes(router *httprouter.RouteGroup, routes []*Route) {
 		handler = route.Middleware.Compose(handler)
 
 		// mount route
-		router.Handler(route.Method, route.Path, handler)
+		router.Method(route.Method, route.Path, handler)
 	}
 }
