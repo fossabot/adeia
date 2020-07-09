@@ -1,7 +1,6 @@
 package server
 
 import (
-	"adeia-api/internal/util/constants"
 	"context"
 	"net/http"
 	"os"
@@ -10,10 +9,10 @@ import (
 	"time"
 
 	"adeia-api/internal/api/middleware"
-	"adeia-api/internal/api/route"
 	"adeia-api/internal/cache"
 	"adeia-api/internal/controller"
 	"adeia-api/internal/db"
+	"adeia-api/internal/util/constants"
 	"adeia-api/internal/util/log"
 	"adeia-api/internal/util/mail"
 	"adeia-api/internal/util/ratelimiter"
@@ -52,9 +51,10 @@ func (s *Server) AddRoutes() {
 
 	controller.Init(s.db, s.cache, s.mailer)
 
+	// setup router
 	s.srv.Route("/" + constants.APIVersion, func(r chi.Router) {
-		route.BindRoutes(r, controller.UserRoutes())
-		route.BindRoutes(r, controller.HolidayRoutes())
+		r.Mount(controller.UserRoutes())
+		r.Mount(controller.HolidayRoutes())
 	})
 }
 

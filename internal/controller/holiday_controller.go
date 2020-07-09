@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"adeia-api/internal/api/middleware"
-	"adeia-api/internal/api/route"
 	"adeia-api/internal/model"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/constants"
@@ -16,16 +14,22 @@ import (
 )
 
 // HolidayRoutes returns a slice containing all holiday-related routes.
-func HolidayRoutes() []*route.Route {
-	return []*route.Route{
-		route.New(http.MethodPost, "/holidays", CreateHoliday(), middleware.Nil),
-		route.New(http.MethodGet, "/holidays/year/{year}/month/{month}", GetHolidaysByYearAndMonth(), middleware.Nil),
-		route.New(http.MethodGet, "/holidays/year/{year}", GetHolidaysByYear(), middleware.Nil),
-		route.New(http.MethodGet, "/holidays/year/{year}/month/{month}/date/{date}", GetHolidaysByDay(), middleware.Nil),
-		route.New(http.MethodGet, "/holidays/{id}", GetHolidayByID(), middleware.Nil),
-		route.New(http.MethodPut, "/holidays/{id}", UpdateHolidayByID(), middleware.Nil),
-		route.New(http.MethodDelete, "/holidays/{id}", DeleteHolidayByID(), middleware.Nil),
-	}
+func HolidayRoutes() (string, chi.Router) {
+	r := chi.NewRouter()
+
+	r.Post("/", CreateHoliday())
+
+	r.Route("/{id}", func(r chi.Router) {
+		r.Get("/", GetHolidayByID())
+		r.Put("/", UpdateHolidayByID())
+		r.Delete("/", DeleteHolidayByID())
+	})
+
+	r.Get("/year/{year}", GetHolidaysByYear())
+	r.Get("/year/{year}/month/{month}", GetHolidaysByYearAndMonth())
+	r.Get("/year/{year}/month/{month}/date/{date}", GetHolidaysByDay())
+
+	return "/holidays", r
 }
 
 // CreateHoliday creates a new holiday.
