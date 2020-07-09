@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"adeia-api/internal/api/middleware"
 	"net/http"
 	"strconv"
 
+	"adeia-api/internal/api/middleware"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/validation"
 
