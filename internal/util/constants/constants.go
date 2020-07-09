@@ -61,8 +61,8 @@ const (
 	Epoch TimeUnit = "Epoch"
 	// Month represents the TimeUnit Month.
 	Month TimeUnit = "Month"
-	// DateOfMonth represents the TimeUnit DateOfMonth.
-	DateOfMonth TimeUnit = "DateOfMonth"
+	// DayOfMonth represents the TimeUnit DayOfMonth.
+	DayOfMonth TimeUnit = "DayOfMonth"
 	// Year represents the TimeUnit Year.
 	Year TimeUnit = "Year"
 )

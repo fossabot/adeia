@@ -10,10 +10,9 @@ import (
 	"adeia-api/internal/model"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/constants"
+	"adeia-api/internal/util/validation"
 
 	"github.com/arkn98/httprouter"
-	"github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
 // HolidayRoutes returns a slice containing all holiday-related routes.
@@ -22,7 +21,7 @@ func HolidayRoutes() []*route.Route {
 		route.New(http.MethodPost, "/holidays", CreateHoliday(), middleware.Nil),
 		route.New(http.MethodGet, "/holidays/year/:year/month/:month", GetHolidaysByYearAndMonth(), middleware.Nil),
 		route.New(http.MethodGet, "/holidays/year/:year", GetHolidaysByYear(), middleware.Nil),
-		route.New(http.MethodGet, "/holidays/year/:year/month/:month/date/:date", GetHolidaysByDate(), middleware.Nil),
+		route.New(http.MethodGet, "/holidays/year/:year/month/:month/day/:day", GetHolidaysByDay(), middleware.Nil),
 		route.New(http.MethodGet, "/holidays/id/:id", GetHolidayByID(), middleware.Nil),
 		route.New(http.MethodPut, "/holidays/id/:id", UpdateHolidayByID(), middleware.Nil),
 		route.New(http.MethodDelete, "/holidays/id/:id", DeleteHolidayByID(), middleware.Nil),
@@ -37,23 +36,12 @@ func CreateHoliday() http.HandlerFunc {
 		Date string `json:"date"`
 	}
 
-	validator := func(r request) *util.Validation {
-		return &util.Validation{
+	validator := func(r request) *validation.Validation {
+		return &validation.Validation{
 			Errors: validation.Errors{
-				"name": validation.Validate(r.Name,
-					validation.Required,
-					validation.RuneLength(4, 128),
-					is.Alphanumeric,
-				),
-				"type": validation.Validate(r.Type,
-					validation.Required,
-					validation.RuneLength(4, 128),
-					is.UTFLetterNumeric,
-				),
-				"date": validation.Validate(r.Date,
-					validation.Required,
-					validation.Date(time.RFC3339),
-				),
+				"name": validation.ValidateResourceName(r.Name),
+				"type": validation.ValidateResourceName(r.Type),
+				"date": validation.ValidateDate(r.Date),
 			},
 		}
 	}
@@ -86,13 +74,10 @@ func CreateHoliday() http.HandlerFunc {
 
 // GetHolidaysByYear returns the holidays in the provided year.
 func GetHolidaysByYear() http.HandlerFunc {
-	validator := func(year string) *util.Validation {
-		return &util.Validation{
+	validator := func(year string) *validation.Validation {
+		return &validation.Validation{
 			Errors: validation.Errors{
-				"year": validation.Validate(year,
-					validation.Required,
-					is.UTFNumeric,
-				),
+				"year": validation.ValidateYear(year),
 			},
 		}
 	}
@@ -117,17 +102,11 @@ func GetHolidaysByYear() http.HandlerFunc {
 
 // GetHolidaysByYearAndMonth returns the holidays in the provided year and month.
 func GetHolidaysByYearAndMonth() http.HandlerFunc {
-	validator := func(year, month string) *util.Validation {
-		return &util.Validation{
+	validator := func(year, month string) *validation.Validation {
+		return &validation.Validation{
 			Errors: validation.Errors{
-				"year": validation.Validate(year,
-					validation.Required,
-					is.UTFNumeric,
-				),
-				"month": validation.Validate(month,
-					validation.Required,
-					is.UTFNumeric,
-				),
+				"year":  validation.ValidateYear(year),
+				"month": validation.ValidateMonth(month),
 			},
 		}
 	}
@@ -153,23 +132,14 @@ func GetHolidaysByYearAndMonth() http.HandlerFunc {
 	}
 }
 
-// GetHolidaysByDate returns the holiday by the provided date.
-func GetHolidaysByDate() http.HandlerFunc {
-	validator := func(year, month, date string) *util.Validation {
-		return &util.Validation{
+// GetHolidaysByDay returns the holiday by the provided date.
+func GetHolidaysByDay() http.HandlerFunc {
+	validator := func(year, month, day string) *validation.Validation {
+		return &validation.Validation{
 			Errors: validation.Errors{
-				"year": validation.Validate(year,
-					validation.Required,
-					is.UTFNumeric,
-				),
-				"month": validation.Validate(year,
-					validation.Required,
-					is.UTFNumeric,
-				),
-				"date": validation.Validate(year,
-					validation.Required,
-					is.UTFNumeric,
-				),
+				"year":  validation.ValidateYear(year),
+				"month": validation.ValidateMonth(month),
+				"day":   validation.ValidateDay(day),
 			},
 		}
 	}
@@ -178,16 +148,16 @@ func GetHolidaysByDate() http.HandlerFunc {
 		params := httprouter.ParamsFromContext(r.Context())
 		year := params.ByName("year")
 		month := params.ByName("month")
-		date := params.ByName("date")
-		if err := validator(year, month, date).Validate(); err != nil {
+		day := params.ByName("day")
+		if err := validator(year, month, day).Validate(); err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
 		}
 
 		y, _ := strconv.Atoi(year)
 		m, _ := strconv.Atoi(month)
-		d, _ := strconv.Atoi(date)
-		holidays, err := holidaySvc.GetHolidaysByDate(util.GetTime(y, m, d), constants.DateOfMonth)
+		d, _ := strconv.Atoi(day)
+		holidays, err := holidaySvc.GetHolidaysByDate(util.GetTime(y, m, d), constants.DayOfMonth)
 		if err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
@@ -198,13 +168,10 @@ func GetHolidaysByDate() http.HandlerFunc {
 
 // GetHolidayByID gets a holiday by id.
 func GetHolidayByID() http.HandlerFunc {
-	validator := func(id string) *util.Validation {
-		return &util.Validation{
+	validator := func(id string) *validation.Validation {
+		return &validation.Validation{
 			Errors: validation.Errors{
-				"id": validation.Validate(id,
-					validation.Required,
-					is.UTFNumeric,
-				),
+				"id": validation.ValidateResourceID(id),
 			},
 		}
 	}
@@ -228,13 +195,10 @@ func GetHolidayByID() http.HandlerFunc {
 
 // DeleteHolidayByID deletes a holiday by id.
 func DeleteHolidayByID() http.HandlerFunc {
-	validator := func(id string) *util.Validation {
-		return &util.Validation{
+	validator := func(id string) *validation.Validation {
+		return &validation.Validation{
 			Errors: validation.Errors{
-				"id": validation.Validate(id,
-					validation.Required,
-					is.UTFNumeric,
-				),
+				"id": validation.ValidateResourceID(id),
 			},
 		}
 	}
@@ -263,23 +227,12 @@ func UpdateHolidayByID() http.HandlerFunc {
 		Type string `json:"type"`
 	}
 
-	validator := func(id, name, holidayType string) *util.Validation {
-		return &util.Validation{
+	validator := func(id, name, holidayType string) *validation.Validation {
+		return &validation.Validation{
 			Errors: validation.Errors{
-				"id": validation.Validate(id,
-					validation.Required,
-					is.UTFNumeric,
-				),
-				"name": validation.Validate(name,
-					validation.Required,
-					validation.RuneLength(4, 128),
-					is.Alphanumeric,
-				),
-				"type": validation.Validate(holidayType,
-					validation.Required,
-					validation.RuneLength(4, 128),
-					is.UTFLetterNumeric,
-				),
+				"id":   validation.ValidateResourceID(id),
+				"name": validation.ValidateResourceName(name),
+				"type": validation.ValidateResourceName(holidayType),
 			},
 		}
 	}
