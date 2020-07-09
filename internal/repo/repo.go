@@ -20,7 +20,7 @@ type HolidayRepo interface {
 	GetByEpoch(epoch int64) ([]*model.Holiday, error)
 	GetByYear(year int) ([]*model.Holiday, error)
 	GetByYearAndMonth(year, month int) ([]*model.Holiday, error)
-	GetByYMD(year, month, date int) ([]*model.Holiday, error)
+	GetByYMD(year, month, day int) ([]*model.Holiday, error)
 	GetByID(id int) (*model.Holiday, error)
 	UpdateNameAndType(id int, name, holidayType string) (int64, error)
 	DeletedByID(id int) (int64, error)

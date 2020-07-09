@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	queryHolidayInsert                = "INSERT INTO holidays (date, name, type) VALUES (:date, :name, :type) RETURNING id"
-	queryHolidayByID                  = "SELECT * FROM holidays WHERE id=$1"
-	queryHolidayByDate                = "SELECT * FROM holidays WHERE EXTRACT(EPOCH FROM date)=$1"
-	queryHolidayByYear                = "SELECT * FROM holidays WHERE EXTRACT(YEAR FROM date)=$1"
-	queryHolidayByYearAndMonth        = "SELECT * FROM holidays WHERE EXTRACT(YEAR FROM date)=$1 AND EXTRACT(MONTH FROM date)=$2"
-	queryHolidayByYearAndMonthAndDate = "SELECT * FROM holidays WHERE EXTRACT(YEAR FROM date)=$1 AND EXTRACT(MONTH FROM date)=$2 AND EXTRACT(DAY FROM date)=$3"
-	queryUpdateNameAndType            = "UPDATE holidays SET name=$1, type=$2 WHERE id=$3"
-	queryDeleteByID                   = "DELETE FROM holidays WHERE id=$1"
+	queryHolidayInsert               = "INSERT INTO holidays (date, name, type) VALUES (:date, :name, :type) RETURNING id"
+	queryHolidayByID                 = "SELECT * FROM holidays WHERE id=$1"
+	queryHolidayByEpoch              = "SELECT * FROM holidays WHERE EXTRACT(EPOCH FROM date)=$1"
+	queryHolidayByYear               = "SELECT * FROM holidays WHERE EXTRACT(YEAR FROM date)=$1"
+	queryHolidayByYearAndMonth       = "SELECT * FROM holidays WHERE EXTRACT(YEAR FROM date)=$1 AND EXTRACT(MONTH FROM date)=$2"
+	queryHolidayByYearAndMonthAndDay = "SELECT * FROM holidays WHERE EXTRACT(YEAR FROM date)=$1 AND EXTRACT(MONTH FROM date)=$2 AND EXTRACT(DAY FROM date)=$3"
+	queryUpdateNameAndType           = "UPDATE holidays SET name=$1, type=$2 WHERE id=$3"
+	queryDeleteByID                  = "DELETE FROM holidays WHERE id=$1"
 )
 
 // HolidayRepoImpl is an implementation of HolidayRepo for Postgres.
@@ -57,7 +57,7 @@ func (i *HolidayRepoImpl) GetByID(id int) (*model.Holiday, error) {
 
 // GetByEpoch gets holidays by epoch.
 func (i *HolidayRepoImpl) GetByEpoch(epoch int64) ([]*model.Holiday, error) {
-	return i.get(queryHolidayByDate, epoch)
+	return i.get(queryHolidayByEpoch, epoch)
 }
 
 // GetByYear gets holidays by year.
@@ -70,9 +70,9 @@ func (i *HolidayRepoImpl) GetByYearAndMonth(year, month int) ([]*model.Holiday, 
 	return i.get(queryHolidayByYearAndMonth, year, month)
 }
 
-// GetByYMD gets holidays by year, month and date.
-func (i *HolidayRepoImpl) GetByYMD(year, month, dateOfMonth int) ([]*model.Holiday, error) {
-	return i.get(queryHolidayByYearAndMonthAndDate, year, month, dateOfMonth)
+// GetByYMD gets holidays by year, month and day.
+func (i *HolidayRepoImpl) GetByYMD(year, month, day int) ([]*model.Holiday, error) {
+	return i.get(queryHolidayByYearAndMonthAndDay, year, month, day)
 }
 
 func (i *HolidayRepoImpl) get(query string, args ...interface{}) ([]*model.Holiday, error) {
