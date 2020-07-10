@@ -5,32 +5,31 @@ import (
 	"strconv"
 
 	"adeia-api/internal/api/middleware"
-	"adeia-api/internal/api/route"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/validation"
 
-	"github.com/arkn98/httprouter"
+	"github.com/go-chi/chi"
 )
 
 // UserRoutes returns a slice containing all user-related routes.
-func UserRoutes() []*route.Route {
-	allowAuthenticated := middleware.NewChain(middleware.AllowAuthenticated(sessionSvc, usrSvc, true))
-	allowUnauthenticated := middleware.NewChain(middleware.AllowAuthenticated(sessionSvc, usrSvc, false))
+func UserRoutes() (string, chi.Router) {
+	r := chi.NewRouter()
 
-	return []*route.Route{
-		// create new user
-		route.New(http.MethodPost, "/users", CreateUser(), middleware.Nil),
-		// get user
-		route.New(http.MethodGet, "/users/:id", GetUser(), allowAuthenticated),
-		// delete user
-		route.New(http.MethodDelete, "/users/:id", DeleteUser(), allowAuthenticated),
-		// activate user
-		route.New(http.MethodPatch, "/users/:id/activation", ActivateUser(), allowUnauthenticated),
-		// login user
-		route.New(http.MethodPost, "/users/:id/sessions", LoginUser(), allowUnauthenticated),
-		// logout user
-		route.New(http.MethodPost, "/users/:id/sessions/destroy", LogoutUser(), allowAuthenticated),
-	}
+	r.Post("/", CreateUser())
+	r.Patch("/activation", ActivateUser())
+	r.Post("/sessions", LoginUser())
+
+	r.Route("/{id}", func(r chi.Router) {
+		// protected routes
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AllowAuthenticated(sessionSvc, usrSvc, true))
+			r.Get("/", GetUser())
+			r.Delete("/", DeleteUser())
+			r.Post("/sessions/destroy", LogoutUser())
+		})
+	})
+
+	return "/users", r
 }
 
 // LoginUser logs in an user.
@@ -101,7 +100,7 @@ func DeleteUser() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		// from outside, the id appears to be the primary key.
-		id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+		id := chi.URLParam(r, "id")
 
 		// validate request
 		if err := validator(id).Validate(); err != nil {
@@ -139,7 +138,7 @@ func ActivateUser() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		empID := httprouter.ParamsFromContext(r.Context()).ByName("id")
+		empID := chi.URLParam(r, "id")
 		// decode request body
 		var rBody request
 		if err := util.DecodeBodyAndRespond(w, r, &rBody); err != nil {
@@ -227,7 +226,7 @@ func GetUser() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		// from outside, the id appears to be the primary key.
-		id := httprouter.ParamsFromContext(r.Context()).ByName("id")
+		id := chi.URLParam(r, "id")
 
 		// validate request
 		if err := validator(id).Validate(); err != nil {
