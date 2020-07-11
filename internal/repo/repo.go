@@ -26,3 +26,11 @@ type HolidayRepo interface {
 	DeletedByID(id int) (int64, error)
 	Insert(u *model.Holiday) (int, error)
 }
+
+
+type LeaveTypeRepo interface {
+	GetByID(id int) (*model.LeaveType, error)
+	UpdateNameAndDays(id int, name string, days int) (int64, error)
+	DeletedByID(id int) (int64, error)
+	Insert(u *model.LeaveType) (int64, error)
+}

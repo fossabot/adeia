@@ -55,6 +55,7 @@ func (s *Server) AddRoutes() {
 	s.srv.Route("/" + constants.APIVersion, func(r chi.Router) {
 		r.Mount(controller.UserRoutes())
 		r.Mount(controller.HolidayRoutes())
+		r.Mount(controller.LeaveTypeRoutes())
 	})
 }
 
