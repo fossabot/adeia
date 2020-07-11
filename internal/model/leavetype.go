@@ -10,5 +10,4 @@ type LeaveType struct {
 
 	// Days represents the number of days of the holiday.
 	Days int `db:"type" json:"type"`
-
 }

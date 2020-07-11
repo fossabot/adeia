@@ -79,7 +79,7 @@ func UpdateLeaveTypeByID() http.HandlerFunc {
 		}
 
 		leaveTypeID, _ := strconv.Atoi(id)
-		days , _ := strconv.Atoi(id)
+		days, _ := strconv.Atoi(id)
 		leaveType := model.LeaveType{Days: days, Name: rBody.Name}
 		if err := leaveTypeSvc.UpdateByID(leaveTypeID, &leaveType); err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
@@ -156,4 +156,3 @@ func CreateLeaveType() http.HandlerFunc {
 		util.RespondWithJSON(w, http.StatusCreated, response)
 	}
 }
-

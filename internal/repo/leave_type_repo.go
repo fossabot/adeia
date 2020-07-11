@@ -6,15 +6,15 @@ import (
 	"database/sql"
 )
 
-type LeaveTypeRepoImpl struct{
+type LeaveTypeRepoImpl struct {
 	db db.DB
 }
 
 const (
-	queryLeaveTypeInsert               = "INSERT INTO leave_types (name, days) VALUES (:name, :days) RETURNING id"
-	queryLeaveTypeByID                 = "SELECT * FROM leave_types WHERE id=$1"
-	queryUpdateLeaveType	           = "UPDATE leave_types SET name=$1, days=$2 WHERE id=$3"
-	queryDeleteLeaveTypeByID           = "DELETE FROM leave_types WHERE id=$1"
+	queryLeaveTypeInsert     = "INSERT INTO leave_types (name, days) VALUES (:name, :days) RETURNING id"
+	queryLeaveTypeByID       = "SELECT * FROM leave_types WHERE id=$1"
+	queryUpdateLeaveType     = "UPDATE leave_types SET name=$1, days=$2 WHERE id=$3"
+	queryDeleteLeaveTypeByID = "DELETE FROM leave_types WHERE id=$1"
 )
 
 func NewLeaveTypeRepo(d db.DB) LeaveTypeRepo {
@@ -22,23 +22,23 @@ func NewLeaveTypeRepo(d db.DB) LeaveTypeRepo {
 }
 
 func (i *LeaveTypeRepoImpl) GetByID(id int) (*model.LeaveType, error) {
-	result , err := i.get(queryLeaveTypeByID,id)
-	if err!=nil {
+	result, err := i.get(queryLeaveTypeByID, id)
+	if err != nil {
 		return nil, err
 	}
-	return result[0],nil
+	return result[0], nil
 }
 
 func (i *LeaveTypeRepoImpl) UpdateNameAndDays(id int, name string, days int) (int64, error) {
-	return i.execute(queryUpdateLeaveType, model.LeaveType{ID:id,Name:name,Days:days}, false)
+	return i.execute(queryUpdateLeaveType, model.LeaveType{ID: id, Name: name, Days: days}, false)
 }
 
 func (i *LeaveTypeRepoImpl) DeletedByID(id int) (int64, error) {
-	return i.execute(queryDeleteLeaveTypeByID, model.LeaveType{ID:id}, false)
+	return i.execute(queryDeleteLeaveTypeByID, model.LeaveType{ID: id}, false)
 }
 
 func (i *LeaveTypeRepoImpl) Insert(u *model.LeaveType) (int64, error) {
-	return i.execute(queryLeaveTypeInsert, model.LeaveType{Name: u.Name,Days: u.Days}, true)
+	return i.execute(queryLeaveTypeInsert, model.LeaveType{Name: u.Name, Days: u.Days}, true)
 }
 
 func (i *LeaveTypeRepoImpl) get(query string, args ...interface{}) ([]*model.LeaveType, error) {
@@ -56,7 +56,7 @@ func (i *LeaveTypeRepoImpl) execute(query string, leaveType model.LeaveType, isI
 	var err error
 	result, err := i.db.NamedExec(query, leaveType)
 	if err == nil {
-		if(isInsert){
+		if isInsert {
 			return result.LastInsertId()
 		}
 		return result.RowsAffected()

@@ -22,5 +22,5 @@ func Init(d db.DB, c cache.Cache, m mail.Mailer) {
 	usrSvc = userService.New(d, c, m)
 	sessionSvc = sessionService.New(c.GetInstance())
 	holidaySvc = holidayService.New(d, c)
-	leaveTypeSvc = leavetypeService.New(d,c)
+	leaveTypeSvc = leavetypeService.New(d, c)
 }

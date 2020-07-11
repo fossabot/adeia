@@ -27,7 +27,6 @@ type HolidayRepo interface {
 	Insert(u *model.Holiday) (int, error)
 }
 
-
 type LeaveTypeRepo interface {
 	GetByID(id int) (*model.LeaveType, error)
 	UpdateNameAndDays(id int, name string, days int) (int64, error)
