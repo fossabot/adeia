@@ -15,17 +15,17 @@ import (
 func UserRoutes() (string, chi.Router) {
 	r := chi.NewRouter()
 
-	r.Post("/", CreateUser())
-	r.Patch("/activation", ActivateUser())
-	r.Post("/sessions", LoginUser())
+	r.Method(http.MethodPost, "/", CreateUser())
+	r.Method(http.MethodPatch, "/activation", ActivateUser())
+	r.Method(http.MethodPost, "/sessions", LoginUser())
 
 	r.Route("/{id}", func(r chi.Router) {
 		// protected routes
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AllowAuthenticated(sessionSvc, usrSvc, true))
-			r.Get("/", GetUser())
-			r.Delete("/", DeleteUser())
-			r.Post("/sessions/destroy", LogoutUser())
+			r.Method(http.MethodGet, "/", GetUser())
+			r.Method(http.MethodDelete, "/", DeleteUser())
+			r.Method(http.MethodPost, "/sessions/destroy", LogoutUser())
 		})
 	})
 
@@ -89,7 +89,7 @@ func LogoutUser() http.HandlerFunc {
 }
 
 // DeleteUser deletes an user account.
-func DeleteUser() http.HandlerFunc {
+func DeleteUser() *ProtectedHandler {
 	validator := func(id string) *validation.Validation {
 		return &validation.Validation{
 			Errors: validation.Errors{
@@ -98,23 +98,26 @@ func DeleteUser() http.HandlerFunc {
 		}
 	}
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		// from outside, the id appears to be the primary key.
-		id := chi.URLParam(r, "id")
+	return &ProtectedHandler{
+		PermissionName: "DELETE_USERS",
+		Handler: func(w http.ResponseWriter, r *http.Request) {
+			// from outside, the id appears to be the primary key.
+			id := chi.URLParam(r, "id")
 
-		// validate request
-		if err := validator(id).Validate(); err != nil {
-			util.RespondWithError(w, err.(util.ResponseError))
-			return
-		}
+			// validate request
+			if err := validator(id).Validate(); err != nil {
+				util.RespondWithError(w, err.(util.ResponseError))
+				return
+			}
 
-		// delete user
-		if err := usrSvc.DeleteUser(id); err != nil {
-			util.RespondWithError(w, err.(util.ResponseError))
-			return
-		}
+			// delete user
+			if err := usrSvc.DeleteUser(id); err != nil {
+				util.RespondWithError(w, err.(util.ResponseError))
+				return
+			}
 
-		w.WriteHeader(http.StatusNoContent)
+			w.WriteHeader(http.StatusNoContent)
+		},
 	}
 }
 
@@ -164,7 +167,7 @@ func ActivateUser() http.HandlerFunc {
 }
 
 // CreateUser creates a new user.
-func CreateUser() http.HandlerFunc {
+func CreateUser() *ProtectedHandler {
 	type request struct {
 		Name        string `json:"name"`
 		EmployeeID  string `json:"employee_id,omitempty"`
@@ -183,39 +186,42 @@ func CreateUser() http.HandlerFunc {
 		}
 	}
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		// decode request body
-		var rBody request
-		if err := util.DecodeBodyAndRespond(w, r, &rBody); err != nil {
-			return
-		}
+	return &ProtectedHandler{
+		PermissionName: "CREATE_USERS",
+		Handler: func(w http.ResponseWriter, r *http.Request) {
+			// decode request body
+			var rBody request
+			if err := util.DecodeBodyAndRespond(w, r, &rBody); err != nil {
+				return
+			}
 
-		// validate request
-		if err := validator(rBody).Validate(); err != nil {
-			util.RespondWithError(w, err.(util.ResponseError))
-			return
-		}
+			// validate request
+			if err := validator(rBody).Validate(); err != nil {
+				util.RespondWithError(w, err.(util.ResponseError))
+				return
+			}
 
-		// create user
-		usr, err := usrSvc.CreateUser(
-			rBody.Name,
-			rBody.Email,
-			rBody.EmployeeID,
-			rBody.Designation,
-		)
-		if err != nil {
-			util.RespondWithError(w, err.(util.ResponseError))
-			return
-		}
+			// create user
+			usr, err := usrSvc.CreateUser(
+				rBody.Name,
+				rBody.Email,
+				rBody.EmployeeID,
+				rBody.Designation,
+			)
+			if err != nil {
+				util.RespondWithError(w, err.(util.ResponseError))
+				return
+			}
 
-		// return response
-		w.Header().Set("Location", "/v1/users/"+usr.EmployeeID)
-		util.RespondWithJSON(w, http.StatusCreated, usr)
+			// return response
+			w.Header().Set("Location", "/v1/users/"+usr.EmployeeID)
+			util.RespondWithJSON(w, http.StatusCreated, usr)
+		},
 	}
 }
 
 // GetUser gets the user using the employee_id.
-func GetUser() http.HandlerFunc {
+func GetUser() *ProtectedHandler {
 	validator := func(id string) *validation.Validation {
 		return &validation.Validation{
 			Errors: validation.Errors{
@@ -224,22 +230,25 @@ func GetUser() http.HandlerFunc {
 		}
 	}
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		// from outside, the id appears to be the primary key.
-		id := chi.URLParam(r, "id")
+	return &ProtectedHandler{
+		PermissionName: "GET_USERS",
+		Handler: func(w http.ResponseWriter, r *http.Request) {
+			// from outside, the id appears to be the primary key.
+			id := chi.URLParam(r, "id")
 
-		// validate request
-		if err := validator(id).Validate(); err != nil {
-			util.RespondWithError(w, err.(util.ResponseError))
-			return
-		}
+			// validate request
+			if err := validator(id).Validate(); err != nil {
+				util.RespondWithError(w, err.(util.ResponseError))
+				return
+			}
 
-		// get user
-		usr, err := usrSvc.GetUserByEmpID(id)
-		if err != nil {
-			util.RespondWithError(w, err.(util.ResponseError))
-			return
-		}
-		util.RespondWithJSON(w, http.StatusOK, usr)
+			// get user
+			usr, err := usrSvc.GetUserByEmpID(id)
+			if err != nil {
+				util.RespondWithError(w, err.(util.ResponseError))
+				return
+			}
+			util.RespondWithJSON(w, http.StatusOK, usr)
+		},
 	}
 }
