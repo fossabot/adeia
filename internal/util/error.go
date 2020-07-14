@@ -129,7 +129,6 @@ var (
 	ErrUnauthorized = ResponseError{
 		StatusCode: http.StatusUnauthorized,
 		ErrorCode:  "UNAUTHORIZED",
-		Message:    "You need to be logged-in to perform this action.",
 	}
 
 	// ErrAccountNotActivated is the error returned when the user account is not
@@ -144,5 +143,12 @@ var (
 	ErrDatabaseError = ResponseError{
 		StatusCode: http.StatusInternalServerError,
 		ErrorCode:  "DATABASE_ERROR",
+	}
+
+	// ErrMustLogin is the error returned to specify that the user must login.
+	ErrMustLogin = ResponseError{
+		StatusCode: http.StatusUnauthorized,
+		ErrorCode:  "MUST_LOGIN",
+		Message:    "You need to be logged-in to perform this action.",
 	}
 )

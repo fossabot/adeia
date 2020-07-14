@@ -52,7 +52,7 @@ func (s *Server) AddRoutes() {
 	controller.Init(s.db, s.cache, s.mailer)
 
 	// setup router
-	s.srv.Route("/" + constants.APIVersion, func(r chi.Router) {
+	s.srv.Route("/"+constants.APIVersion, func(r chi.Router) {
 		r.Mount(controller.UserRoutes())
 		r.Mount(controller.HolidayRoutes())
 	})

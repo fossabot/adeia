@@ -16,7 +16,6 @@ type Cache interface {
 	SetWithExpiry(key, value string, seconds int) error
 	Delete(keys ...string) error
 	Close() error
-	GetInstance() *RedisCache
 }
 
 // RedisCache represents the cache connection instance.
@@ -45,12 +44,6 @@ func New() (Cache, error) {
 
 func pingCheck(p *radix.Pool) error {
 	return p.Do(radix.Cmd(nil, "PING"))
-}
-
-// GetInstance returns the underlying instance.
-// TODO: handle this differently because the interface is tied to its implementation.
-func (r *RedisCache) GetInstance() *RedisCache {
-	return r
 }
 
 // Get gets the value of the specified key.

@@ -4,7 +4,7 @@ import (
 	"adeia-api/internal/cache"
 	"adeia-api/internal/db"
 	"adeia-api/internal/model"
-	"adeia-api/internal/repo"
+	userRepo "adeia-api/internal/repo/user"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/crypto"
 	"adeia-api/internal/util/log"
@@ -23,25 +23,25 @@ type Service interface {
 
 // Impl is a Service implementation.
 type Impl struct {
-	cache   cache.Cache
-	mailer  mail.Mailer
-	usrRepo repo.UserRepo
+	cache    cache.Cache
+	mailer   mail.Mailer
+	userRepo userRepo.Repo
 }
 
 // New creates a new Service.
 func New(d db.DB, c cache.Cache, m mail.Mailer) Service {
-	u := repo.NewUserRepo(d)
+	u := userRepo.New(d)
 	return &Impl{
-		cache:   c,
-		mailer:  m,
-		usrRepo: u,
+		cache:    c,
+		mailer:   m,
+		userRepo: u,
 	}
 }
 
 // ActivateUser activates an user account.
 func (i *Impl) ActivateUser(empID, email, password string) (*model.User, error) {
 	// check if user exists
-	usr, err := i.usrRepo.GetByEmpID(empID)
+	usr, err := i.userRepo.GetByEmpID(empID)
 	if err != nil {
 		log.Errorf("cannot find user by empID and email: %v", err)
 		return nil, util.ErrDatabaseError
@@ -61,7 +61,7 @@ func (i *Impl) ActivateUser(empID, email, password string) (*model.User, error) 
 		log.Errorf("cannot generate hash for password: %v", err)
 		return nil, util.ErrInternalServerError
 	}
-	if err := i.usrRepo.UpdatePasswordAndIsActivated(usr, hash, true); err != nil {
+	if err := i.userRepo.UpdatePasswordAndIsActivated(usr, hash, true); err != nil {
 		log.Errorf("cannot update user: %v", err)
 		return nil, util.ErrDatabaseError
 	}
@@ -72,7 +72,7 @@ func (i *Impl) ActivateUser(empID, email, password string) (*model.User, error) 
 // CreateUser creates a new user.
 func (i *Impl) CreateUser(name, email, empID, designation string) (*model.User, error) {
 	// check if user already exists
-	usr, err := i.usrRepo.GetByEmailInclDeleted(email)
+	usr, err := i.userRepo.GetByEmailInclDeleted(email)
 	if err != nil {
 		log.Errorf("cannot find if an user already exists with the provided email: %v", err)
 		return nil, util.ErrDatabaseError
@@ -96,7 +96,7 @@ func (i *Impl) CreateUser(name, email, empID, designation string) (*model.User, 
 	}
 
 	// create user
-	if _, err = i.usrRepo.Insert(u); err != nil {
+	if _, err = i.userRepo.Insert(u); err != nil {
 		log.Error("cannot create new user: %v", err)
 		return nil, util.ErrDatabaseError
 	}
@@ -105,7 +105,7 @@ func (i *Impl) CreateUser(name, email, empID, designation string) (*model.User, 
 
 // DeleteUser deletes a user.
 func (i *Impl) DeleteUser(empID string) error {
-	rowsAffected, err := i.usrRepo.DeleteByEmpID(empID)
+	rowsAffected, err := i.userRepo.DeleteByEmpID(empID)
 	if err != nil {
 		log.Errorf("cannot delete user: %v", err)
 		return util.ErrDatabaseError
@@ -119,7 +119,7 @@ func (i *Impl) DeleteUser(empID string) error {
 
 // GetUserByEmpID gets a user using the provided empID.
 func (i *Impl) GetUserByEmpID(empID string) (*model.User, error) {
-	usr, err := i.usrRepo.GetByEmpID(empID)
+	usr, err := i.userRepo.GetByEmpID(empID)
 	if err != nil {
 		log.Errorf("cannot find user with the provided employee ID: %v", err)
 		return nil, util.ErrDatabaseError
@@ -133,7 +133,7 @@ func (i *Impl) GetUserByEmpID(empID string) (*model.User, error) {
 
 // GetUserByID gets a user using the provided id.
 func (i *Impl) GetUserByID(id int) (*model.User, error) {
-	usr, err := i.usrRepo.GetByID(id)
+	usr, err := i.userRepo.GetByID(id)
 	if err != nil {
 		log.Errorf("cannot find user with the provided ID: %v", err)
 		return nil, util.ErrDatabaseError
@@ -148,7 +148,7 @@ func (i *Impl) GetUserByID(id int) (*model.User, error) {
 // LoginUser logs in a user.
 func (i *Impl) LoginUser(email, password string) (*model.User, error) {
 	// check if user exists
-	usr, err := i.usrRepo.GetByEmail(email)
+	usr, err := i.userRepo.GetByEmail(email)
 	if err != nil {
 		log.Errorf("cannot find user by email: %v", err)
 		return nil, util.ErrDatabaseError
