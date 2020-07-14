@@ -29,12 +29,12 @@ func EncodeHex(b []byte) string {
 	return hex.EncodeToString(b)
 }
 
-// EncodeBase64 encodes the given byte slice into url-safe base64 (with padding).
+// EncodeBase64 encodes the given byte slice into url-safe base64 (without padding).
 func EncodeBase64(b []byte) string {
 	return base64.RawURLEncoding.EncodeToString(b)
 }
 
-// DecodeBase64 encodes the given byte slice into url-safe base64 (with padding).
+// DecodeBase64 encodes the given byte slice into url-safe base64 (without padding).
 func DecodeBase64(s string) ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(s)
 }

@@ -27,7 +27,7 @@ func HolidayRoutes() (string, chi.Router) {
 
 	r.Get("/year/{year}", GetHolidaysByYear())
 	r.Get("/year/{year}/month/{month}", GetHolidaysByYearAndMonth())
-	r.Get("/year/{year}/month/{month}/date/{date}", GetHolidaysByDay())
+	r.Get("/year/{year}/month/{month}/day/{day}", GetHolidaysByDay())
 
 	return "/holidays", r
 }

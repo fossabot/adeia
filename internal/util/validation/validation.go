@@ -230,6 +230,11 @@ var DayPolicy = []validation.Rule{
 	validation.Max(31),
 }
 
+// TokenPolicy is the validation policy for secure random tokens.
+var TokenPolicy = []validation.Rule{
+	validation.Required,
+}
+
 // ==========
 // Validation funcs
 // ==========
@@ -312,4 +317,9 @@ func ValidateMonth(value string) error {
 // ValidateDay validates a day of month value (eg., 24).
 func ValidateDay(value string) error {
 	return validation.Validate(value, DayPolicy...)
+}
+
+// ValidateToken validates secure random tokens.
+func ValidateToken(value string) error {
+	return validation.Validate(value, TokenPolicy...)
 }

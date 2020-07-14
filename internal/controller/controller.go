@@ -18,6 +18,6 @@ var (
 // Init initializes all services that are used in the controllers.
 func Init(d db.DB, c cache.Cache, m mail.Mailer) {
 	usrSvc = userService.New(d, c, m)
-	sessionSvc = sessionService.New(c.GetInstance())
+	sessionSvc = sessionService.New(d)
 	holidaySvc = holidayService.New(d, c)
 }
