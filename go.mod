@@ -14,6 +14,7 @@ require (
 	github.com/jordan-wright/email v0.0.0-20200602115436-fd8a7622303e
 	github.com/lib/pq v1.5.2 // indirect
 	github.com/mediocregopher/radix/v3 v3.5.1
+	github.com/pascaldekloe/jwt v1.9.0
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.5.1
 	github.com/test-go/testify v1.1.4 // indirect

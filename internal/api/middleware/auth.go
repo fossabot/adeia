@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 	"net/http"
-	"strconv"
+	"strings"
 
 	"adeia-api/internal/service/session"
 	"adeia-api/internal/service/user"
@@ -12,44 +12,35 @@ import (
 	"adeia-api/internal/util/log"
 )
 
-// AllowAuthenticated is a middleware that allows users based on their auth state.
-// If `allowAuthenticated` is true, it will only allow authenticated users through and if
-// `allowAuthenticated` is set to false, it will only allow unauthenticated users through.
-func AllowAuthenticated(sessionSvc session.Service, usrSvc user.Service, allowAuthenticated bool) Func {
+// AllowAuthenticated is a middleware that allows only authenticated users.
+func AllowAuthenticated(sessionSvc session.Service, userSvc user.Service) Func {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// get user id
-			userID, err := sessionSvc.GetAndRefresh(r)
-			if !allowAuthenticated {
-				if err == nil {
-					// user is authenticated
-					log.Debugf("user is authenticated: %v", err)
-					util.RespondWithError(w, util.ErrBadRequest.Msg("already authenticated"))
-					return
-				}
-
-				// user is not authenticated
-				next.ServeHTTP(w, r)
-				return
-			}
-
-			if err != nil {
-				// user is not authenticated
-				log.Debugf("cannot get session cookie: %v", err)
+			// get jwt from header
+			t := r.Header.Get("Authorization")
+			if t == "" {
+				log.Debug("no authorization header present")
 				util.RespondWithError(w, util.ErrUnauthorized)
 				return
 			}
 
+			// validate jwt
+			token := strings.TrimPrefix(t, "Bearer ")
+			empID, err := sessionSvc.ParseAccessToken(token)
+			if err != nil {
+				util.RespondWithError(w, err.(util.ResponseError))
+				return
+			}
+
 			// get user
-			userIDStr, _ := strconv.Atoi(userID)
-			usr, err := usrSvc.GetUserByID(userIDStr)
+			usr, err := userSvc.GetUserByEmpID(empID)
 			if err != nil {
 				log.Debugf("cannot get user for associated session: %v", err)
 				util.RespondWithError(w, util.ErrUnauthorized)
 				return
 			}
 
-			// store in context
+			// store user in context
 			ctx := context.WithValue(r.Context(), constants.ContextUserKey, usr)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
