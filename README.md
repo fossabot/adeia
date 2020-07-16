@@ -7,7 +7,7 @@ adeia-api
 [![Go Report Card](https://goreportcard.com/badge/github.com/arkn98/adeia-api)](https://goreportcard.com/report/github.com/arkn98/adeia-api)
 
 <a href="https://github.com/arkn98/adeia-api">
-    <img src="docs/logo.svg" align="right" alt="Adeia logo by arkn98" height="72" />
+    <img src="assets/logo.svg" align="right" alt="Adeia logo by arkn98" height="72" />
 </a>
 
 `adeia-api` is the API for Adeia, the leave management system for educational institutions.
