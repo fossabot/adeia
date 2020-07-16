@@ -4,18 +4,24 @@ package constants
 type TimeUnit string
 
 const (
-	// APIVersion represents the current major version of the API.
+	// APIVersion represents the current major version of the API. It is used as URL prefix.
 	APIVersion = "v1"
 
 	// EmployeeIDLength represents the length of the generated employee IDs.
 	EmployeeIDLength = 6
 
-	// ContextUserKey is the key used to store authenticated user in the context.
+	// ==========
+	// Session-related constants
+	// ==========
+
+	// ContextUserKey is the key used to store the authenticated user in the context.
 	ContextUserKey = "user"
-	// SessionCookieKey is the name of the session cookie.
-	SessionCookieKey = "id"
-	// SessionExpiry is the max-age of the session cookie (in seconds).
-	SessionExpiry = 24 * 60 * 60
+	// RefreshTokenCookieName is the name of the cookie that stores the refresh token.
+	RefreshTokenCookieName = "token"
+	// AccessTokenExpiry is the max-age of the access token (jwt) (in seconds).
+	AccessTokenExpiry = 30 * 60 // 30 minutes
+	// RefreshTokenExpiry is the max-age of the refresh token in the cookie (in seconds).
+	RefreshTokenExpiry = 7 * 24 * 60 * 60 // 7 days
 
 	// ==========
 	// Keys of env variables to override config from config.yaml
@@ -24,12 +30,17 @@ const (
 	// EnvPrefix is used as the prefix for all env variables related to adeia.
 	EnvPrefix = "ADEIA"
 
+	// Server keys
+
+	// EnvServerJWTSecretKey is the env key for server's jwt secret.
+	EnvServerJWTSecretKey = EnvPrefix + "_SERVER_JWT_SECRET"
+
 	// Mailer keys
 
-	// EnvMailerUsername is the env key for mailer username.
-	EnvMailerUsername = EnvPrefix + "_MAILER_USERNAME"
-	// EnvMailerPassword is the env key for mailer password.
-	EnvMailerPassword = EnvPrefix + "_MAILER_PASSWORD"
+	// EnvMailerUsernameKey is the env key for mailer username.
+	EnvMailerUsernameKey = EnvPrefix + "_MAILER_USERNAME"
+	// EnvMailerPasswordKey is the env key for mailer password.
+	EnvMailerPasswordKey = EnvPrefix + "_MAILER_PASSWORD"
 
 	// Database (Postgres) keys
 

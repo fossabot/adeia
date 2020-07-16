@@ -19,9 +19,12 @@ var (
 
 	// envOverrides holds all environment value keys for overriding the config.
 	envOverrides = map[string]string{
+		// server overrides
+		"server.jwt_secret": constants.EnvServerJWTSecretKey,
+
 		// mailer overrides
-		"mailer.username": constants.EnvMailerUsername,
-		"mailer.password": constants.EnvMailerPassword,
+		"mailer.username": constants.EnvMailerUsernameKey,
+		"mailer.password": constants.EnvMailerPasswordKey,
 
 		// database env overrides
 		"database.dbname":   constants.EnvDBNameKey,

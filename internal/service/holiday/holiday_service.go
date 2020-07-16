@@ -6,7 +6,7 @@ import (
 	"adeia-api/internal/cache"
 	"adeia-api/internal/db"
 	"adeia-api/internal/model"
-	"adeia-api/internal/repo"
+	holidayRepo "adeia-api/internal/repo/holiday"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/constants"
 	"adeia-api/internal/util/log"
@@ -23,13 +23,12 @@ type Service interface {
 
 // Impl is a Service implementation.
 type Impl struct {
-	holidayRepo repo.HolidayRepo
+	holidayRepo holidayRepo.Repo
 }
 
 // New creates a new Service.
 func New(d db.DB, c cache.Cache) Service {
-	holiday := repo.NewHolidayRepo(d)
-	return &Impl{holiday}
+	return &Impl{holidayRepo.New(d)}
 }
 
 // CreateHoliday creates a holiday.

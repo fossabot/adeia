@@ -14,46 +14,6 @@ import (
 // Errors represents a map of validation errors containing, fieldName:error pairs.
 type Errors map[string]error
 
-// WrappedRule is a custom validation rule that wraps existing rules. Currently, WrappedRule
-// is used to allow certain characters in strings, like whitespaces and special characters,
-// before actually executing the wrapped rule. For example, with WrappedRule, a custom validator
-// can be created that allows only "a space-separated UTFLetter" string.
-type WrappedRule struct {
-	rules               []validation.Rule
-	allowWhitespace     bool
-	allowSpecialChars   bool
-	allowedSpecialChars string
-}
-
-// Validate performs the actual validation. This is basically the Validate method of
-// validation.StringRule, with plugged-in logic to allow certain additional characters that
-// existing rules won't allow.
-func (w *WrappedRule) Validate(value interface{}) error {
-	// copied over from StringRule
-	value, isNil := validation.Indirect(value)
-	if isNil || validation.IsEmpty(value) {
-		return nil
-	}
-	str, err := validation.EnsureString(value)
-	if err != nil {
-		return err
-	}
-
-	switch {
-	case w.allowWhitespace:
-		str = util.StripWhitespace(str)
-		fallthrough
-	case w.allowSpecialChars:
-		str = util.StripChars(str, w.allowedSpecialChars)
-		fallthrough
-	default:
-		break
-	}
-
-	// run the actual rule
-	return validation.Validate(str, w.rules...)
-}
-
 // Validation represents a map of validation rules.
 type Validation struct {
 	Errors
@@ -72,39 +32,6 @@ func (v *Validation) Validate() error {
 		e[k] = v.Error()
 	}
 	return util.ErrValidationFailed.ValidationErr(e)
-}
-
-// WithWhitespace is a wrapped rule that allows the use of whitespaces along with
-// the wrapped rule. Basically, it strips of any whitespace before passing it to
-// the wrapped rule for validation.
-func WithWhitespace(rules ...validation.Rule) validation.Rule {
-	return &WrappedRule{
-		rules:           rules,
-		allowWhitespace: true,
-	}
-}
-
-// WithSpecialChars is a wrapped rule that allows the use of specified chars along with
-// the wrapped rule. Basically, it strips of any of the specified chars before passing it to
-// the wrapped rule for validation.
-func WithSpecialChars(chars string, rules ...validation.Rule) validation.Rule {
-	return &WrappedRule{
-		rules:               rules,
-		allowSpecialChars:   true,
-		allowedSpecialChars: chars,
-	}
-}
-
-// WithWhiteAndSpecialChars is a wrapped rule that allows the use of whitespaces and specified
-// chars along with the wrapped rule. Basically, it strips of any of the specified chars
-// before passing it to the wrapped rule for validation.
-func WithWhiteAndSpecialChars(chars string, rules ...validation.Rule) validation.Rule {
-	return &WrappedRule{
-		rules:               rules,
-		allowWhitespace:     true,
-		allowSpecialChars:   true,
-		allowedSpecialChars: chars,
-	}
 }
 
 // ==========
@@ -196,7 +123,7 @@ var ResourceNamePolicy = []validation.Rule{
 var ResourceIDPolicy = []validation.Rule{
 	validation.Required,
 	is.Digit,
-	validation.Min(1),
+	Min(1),
 }
 
 // DatePolicy is the validation policy for a date string.
@@ -210,24 +137,28 @@ var DatePolicy = []validation.Rule{
 var YearPolicy = []validation.Rule{
 	validation.Required,
 	is.Digit,
-	validation.Min(4),
-	validation.Max(4),
+	validation.RuneLength(4, 4),
 }
 
 // MonthPolicy is the validation policy for a month value. It must only be between 1-12.
 var MonthPolicy = []validation.Rule{
 	validation.Required,
 	is.Digit,
-	validation.Min(1),
-	validation.Max(12),
+	Min(1),
+	Max(12),
 }
 
 // DayPolicy is the validation policy for a day of month value. It must only be between 1-31.
 var DayPolicy = []validation.Rule{
 	validation.Required,
 	is.Digit,
-	validation.Min(1),
-	validation.Max(31),
+	Min(1),
+	Max(31),
+}
+
+// TokenPolicy is the validation policy for secure random tokens.
+var TokenPolicy = []validation.Rule{
+	validation.Required,
 }
 
 // ==========
@@ -312,4 +243,9 @@ func ValidateMonth(value string) error {
 // ValidateDay validates a day of month value (eg., 24).
 func ValidateDay(value string) error {
 	return validation.Validate(value, DayPolicy...)
+}
+
+// ValidateToken validates secure random tokens.
+func ValidateToken(value string) error {
+	return validation.Validate(value, TokenPolicy...)
 }
