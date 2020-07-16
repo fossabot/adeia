@@ -1,0 +1,54 @@
+package api
+
+import (
+	"fmt"
+
+	"adeia-api/internal/api/server"
+	"adeia-api/internal/cache"
+	"adeia-api/internal/db"
+	"adeia-api/internal/util/log"
+	"adeia-api/internal/util/mail"
+)
+
+// Start starts the API server.
+//
+// Error handling when serving requests is handled by the `server`. Only other
+// panic-able errors (errors that happen on things that are absolutely
+// necessary) are returned to main and panic-ed.
+func Start() error {
+	// init logger
+	if err := log.Init(); err != nil {
+		return fmt.Errorf("cannot initialize logger: %v", err)
+	}
+	defer log.Sync()
+	log.Debug("successfully initialized logger")
+
+	// init db connection
+	dbConn, err := db.New()
+	if err != nil {
+		return fmt.Errorf("cannot initialize connection to db: %v", err)
+	}
+	defer dbConn.Close()
+	log.Debug("successfully initialized database connection")
+
+	// init cache
+	cacheConn, err := cache.New()
+	if err != nil {
+		return fmt.Errorf("cannot initialize cache: %v", err)
+	}
+	defer cacheConn.Close()
+	log.Debug("successfully initialized cache connection")
+
+	// init mailer
+	mailer, err := mail.NewMailer()
+	if err != nil {
+		return fmt.Errorf("cannot initialize mailer: %v", err)
+	}
+
+	s := server.New(dbConn, cacheConn, mailer)
+	s.AddRoutes()
+	// start serving
+	s.Serve()
+
+	return nil
+}
