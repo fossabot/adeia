@@ -39,16 +39,7 @@ func New(d db.DB) Repo {
 
 // Insert inserts a new session into the database.
 func (i *Impl) Insert(s *model.Session) (lastInsertID int, err error) {
-	stmt, err := i.db.PrepareNamed(queryInsert)
-	if err != nil {
-		return 0, err
-	}
-	defer stmt.Close()
-
-	if err := stmt.Get(&lastInsertID, s); err != nil {
-		return 0, err
-	}
-	return lastInsertID, nil
+	return i.db.Insert(queryInsert, s)
 }
 
 // GetByUserIDAndRefreshToken gets a session identified by its userID and refreshToken.

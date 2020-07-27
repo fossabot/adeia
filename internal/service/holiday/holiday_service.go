@@ -43,8 +43,12 @@ func (i *Impl) CreateHoliday(holiday model.Holiday) (*model.Holiday, error) {
 	}
 
 	id, err := i.holidayRepo.Insert(&holiday)
+	if err != nil {
+		log.Errorf("cannot create new holiday: %v", err)
+		return nil, util.ErrDatabaseError
+	}
 	holiday.ID = id
-	return &holiday, err
+	return &holiday, nil
 }
 
 // GetHolidaysByDate gets all holidays using the provided date.

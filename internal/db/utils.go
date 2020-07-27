@@ -26,3 +26,18 @@ func WithTx(db *sqlx.DB, fn txFn) error {
 	}
 	return tx.Commit()
 }
+
+// Insert is a generic database insert that returns the last-insert ID for Postgres.
+// This method only accepts named queries.
+func (p *PostgresDB) Insert(namedQuery string, arg interface{}) (lastInsertID int, err error) {
+	stmt, err := p.PrepareNamed(namedQuery)
+	if err != nil {
+		return 0, err
+	}
+	defer stmt.Close()
+
+	if err := stmt.Get(&lastInsertID, arg); err != nil {
+		return 0, err
+	}
+	return lastInsertID, nil
+}

@@ -17,6 +17,13 @@ type DB interface {
 	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
 	PrepareNamed(query string) (*sqlx.NamedStmt, error)
 	Close() error
+
+	Utils
+}
+
+// Utils represents the common utility functions.
+type Utils interface {
+	Insert(namedQuery string, arg interface{}) (lastInsertID int, err error)
 }
 
 // PostgresDB is a DB implementation.

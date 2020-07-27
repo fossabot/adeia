@@ -43,17 +43,7 @@ func New(d db.DB) Repo {
 
 // Insert inserts a holiday using the db connection instance and returns the LastInsertID.
 func (i *Impl) Insert(h *model.Holiday) (int, error) {
-	stmt, err := i.db.PrepareNamed(queryInsert)
-	if err != nil {
-		return 0, err
-	}
-	defer stmt.Close()
-
-	var lastInsertID int
-	if err := stmt.Get(&lastInsertID, h); err != nil {
-		return 0, err
-	}
-	return lastInsertID, nil
+	return i.db.Insert(queryInsert, h)
 }
 
 // GetByID gets a holiday from db using the id.

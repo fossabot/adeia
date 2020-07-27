@@ -44,18 +44,8 @@ func New(d db.DB) Repo {
 }
 
 // Insert inserts a user using the db connection instance and returns the LastInsertID.
-func (i *Impl) Insert(u *model.User) (int, error) {
-	stmt, err := i.db.PrepareNamed(queryInsert)
-	if err != nil {
-		return 0, err
-	}
-	defer stmt.Close()
-
-	var lastInsertID int
-	if err := stmt.Get(&lastInsertID, u); err != nil {
-		return 0, err
-	}
-	return lastInsertID, nil
+func (i *Impl) Insert(u *model.User) (lastInsertID int, err error) {
+	return i.db.Insert(queryInsert, u)
 }
 
 // GetByID gets a user from db using the id.
