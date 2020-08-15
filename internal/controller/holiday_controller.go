@@ -247,12 +247,12 @@ func UpdateHolidayByID() *ProtectedHandler {
 		Type string `json:"type"`
 	}
 
-	validator := func(id, name, holidayType string) *validation.Validation {
+	validator := func(id string, r request) *validation.Validation {
 		return &validation.Validation{
 			Errors: validation.Errors{
 				"id":   validation.ValidateResourceID(id),
-				"name": validation.ValidateResourceName(name),
-				"type": validation.ValidateResourceName(holidayType),
+				"name": validation.ValidateResourceName(r.Name),
+				"type": validation.ValidateResourceName(r.Type),
 			},
 		}
 	}
@@ -267,7 +267,7 @@ func UpdateHolidayByID() *ProtectedHandler {
 			}
 
 			// validate request
-			if err := validator(id, rBody.Name, rBody.Type).Validate(); err != nil {
+			if err := validator(id, rBody).Validate(); err != nil {
 				util.RespondWithError(w, err.(util.ResponseError))
 				return
 			}

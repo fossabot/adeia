@@ -12,6 +12,7 @@ import (
 // Service contains all role-related business logic.
 type Service interface {
 	CreateRole(name string) (*model.Role, error)
+	UpdateByID(roleID int, role *model.Role) error
 }
 
 // Impl is a Service implementation.
@@ -46,4 +47,27 @@ func (i *Impl) CreateRole(name string) (*model.Role, error) {
 	// return created role
 	r.ID = id
 	return &r, nil
+}
+
+// UpdateByID updates a role identified by the roleID.
+func (i *Impl) UpdateByID(roleID int, role *model.Role) error {
+	// check for existing role, because name of role is unique
+	if existingRole, err := i.roleRepo.CheckIfNameExists(role.Name, roleID); err != nil {
+		log.Errorf("cannot find if role already exists with the provided name %s: %v", role.Name, err)
+		return util.ErrDatabaseError
+	} else if existingRole != nil {
+		log.Errorf("role already exists with provided name %s", role.Name)
+		return util.ErrResourceAlreadyExists
+	}
+
+	rowsAffected, err := i.roleRepo.UpdateName(roleID, role.Name)
+	if err != nil {
+		log.Errorf("Database Error: %v", err)
+		return util.ErrDatabaseError
+	} else if rowsAffected == 0 {
+		log.Errorf("no holiday found with provided id: %v", err)
+		return util.ErrResourceNotFound
+	}
+
+	return nil
 }
