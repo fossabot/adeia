@@ -22,7 +22,8 @@ script:
   - 'if [ "${JOB}" = "build" ]; then go build -v ./...; fi'
 
 jobs:
-  include:
+  fast_finish: true
+  allow_failures:
     - os: linux
       script: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
       after_success:
