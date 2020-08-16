@@ -4,6 +4,8 @@ cache:
   directories:
     - $GOPATH/pkg/mod
 
+dist: bionic
+
 go:
   - 1.15.x
 
@@ -16,15 +18,19 @@ env:
   matrix:
     - JOB=test
     - JOB=build
+    - JOB=test-coverage
 
 script:
-  - 'if [ "${JOB}" = "test" ]; then go test -v -race ./...; fi'
-  - 'if [ "${JOB}" = "build" ]; then go build -v ./...; fi'
+  - 'if [ "${JOB}" = "test" ]; then make test; fi'
+  - 'if [ "${JOB}" = "build" ]; then make build; fi'
+  - 'if [ "${JOB}" = "test-coverage" ]; then make test-coverage; fi'
 
 jobs:
   fast_finish: true
   allow_failures:
-    - os: linux
-      script: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
-      after_success:
-        - bash <(curl -s https://codecov.io/bash)
+    - env: JOB=test-coverage
+  exclude:
+    - os: osx
+      env: JOB=test-coverage
+    - os: windows
+      env: JOB=test-coverage
