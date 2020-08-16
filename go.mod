@@ -1,6 +1,6 @@
 module adeia-api
 
-go 1.14
+go 1.15
 
 require (
 	github.com/alexedwards/argon2id v0.0.0-20200522061839-9369edc04b05
