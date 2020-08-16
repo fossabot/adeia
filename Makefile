@@ -8,7 +8,7 @@ test:
 
 # run all unit tests and report coverage data to codecov.io
 test-coverage:
-	go test -v -coverprofile=coverage.txt -covermode=atomic ./... && bash <(curl -s https://codecov.io/bash)
+	go test -v -coverprofile=coverage.txt -covermode=atomic ./... && (curl -s https://codecov.io/bash | bash)
 
 # build project
 build:

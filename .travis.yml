@@ -20,6 +20,11 @@ env:
     - JOB=build
     - JOB=test-coverage
 
+before_script:
+  - if [ $TRAVIS_OS_NAME == "windows" ]; then
+      chocolatey install make;
+    fi
+
 script:
   - 'if [ "${JOB}" = "test" ]; then make test; fi'
   - 'if [ "${JOB}" = "build" ]; then make build; fi'
