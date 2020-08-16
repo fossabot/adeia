@@ -1,0 +1,33 @@
+language: go
+
+cache:
+  directories:
+    - $GOPATH/pkg/mod
+
+go:
+  - 1.15.x
+
+os:
+  - linux
+  - osx
+  - windows
+
+env:
+  matrix:
+    - JOB=test
+    - JOB=build
+
+script:
+  - 'if [ "${JOB}" = "test" ]; then go test -v -race ./...; fi'
+  - 'if [ "${JOB}" = "build" ]; then go build -v ./...; fi'
+
+jobs:
+  include:
+    - os: linux
+      before_script:
+        - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+        - chmod +x ./cc-test-reporter
+        - ./cc-test-reporter before-build
+      script: go test -v -coverprofile c.out ./...
+      after_script:
+        - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
