@@ -1,0 +1,41 @@
+language: go
+
+cache:
+  directories:
+    - $GOPATH/pkg/mod
+
+dist: bionic
+
+go:
+  - 1.15.x
+
+os:
+  - linux
+  - osx
+  - windows
+
+env:
+  matrix:
+    - JOB=test
+    - JOB=build
+    - JOB=test-coverage
+
+before_script:
+  - if [ $TRAVIS_OS_NAME == "windows" ]; then
+      chocolatey install make;
+    fi
+
+script:
+  - 'if [ "${JOB}" = "test" ]; then make test; fi'
+  - 'if [ "${JOB}" = "build" ]; then make build; fi'
+  - 'if [ "${JOB}" = "test-coverage" ]; then make test-coverage; fi'
+
+jobs:
+  fast_finish: true
+  allow_failures:
+    - env: JOB=test-coverage
+  exclude:
+    - os: osx
+      env: JOB=test-coverage
+    - os: windows
+      env: JOB=test-coverage

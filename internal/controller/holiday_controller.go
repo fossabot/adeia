@@ -73,7 +73,7 @@ func CreateHoliday() *ProtectedHandler {
 				return
 			}
 
-			w.Header().Set("Location", "/holidays/"+string(response.ID))
+			w.Header().Set("Location", "/holidays/"+strconv.Itoa(response.ID))
 			util.RespondWithJSON(w, http.StatusCreated, response)
 		},
 	}
