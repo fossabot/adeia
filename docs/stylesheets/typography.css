@@ -1,0 +1,7 @@
+body, input {
+    font-family: 'Inter', -apple-system, Helvetica, Arial, sans-serif;
+}
+
+pre, code, kbd {
+    font-family: 'JetBrains Mono', SFMono-Regular, Consolas, Menlo, monospace;
+}
