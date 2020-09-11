@@ -1,34 +1,25 @@
 package role
 
 import (
-	"adeia-api/internal/cache"
-	"adeia-api/internal/db"
 	"adeia-api/internal/model"
-	roleRepo "adeia-api/internal/repo/role"
+	"adeia-api/internal/service"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/log"
 )
 
-// Service contains all role-related business logic.
-type Service interface {
-	CreateRole(name string) (*model.Role, error)
-	UpdateByID(roleID int, role *model.Role) error
-}
-
-// Impl is a Service implementation.
-type Impl struct {
-	roleRepo roleRepo.Repo
+type Service struct {
+	roleRepo service.RoleRepo
 }
 
 // New creates a new Service.
-func New(d db.DB, c cache.Cache) Service {
-	return &Impl{roleRepo.New(d)}
+func New(r service.RoleRepo) *Service {
+	return &Service{r}
 }
 
 // CreateRole creates a role.
-func (i *Impl) CreateRole(name string) (*model.Role, error) {
+func (s *Service) CreateRole(name string) (*model.Role, error) {
 	// check for existing role
-	if existingRole, err := i.roleRepo.GetByName(name); err != nil {
+	if existingRole, err := s.roleRepo.GetByName(name); err != nil {
 		log.Errorf("cannot find if role already exists with the provided name %s: %v", name, err)
 		return nil, util.ErrDatabaseError
 	} else if existingRole != nil {
@@ -38,7 +29,7 @@ func (i *Impl) CreateRole(name string) (*model.Role, error) {
 
 	// create new role
 	r := model.Role{Name: name}
-	id, err := i.roleRepo.Insert(&r)
+	id, err := s.roleRepo.Insert(&r)
 	if err != nil {
 		log.Errorf("cannot create new role: %v", err)
 		return nil, util.ErrDatabaseError
@@ -50,9 +41,9 @@ func (i *Impl) CreateRole(name string) (*model.Role, error) {
 }
 
 // UpdateByID updates a role identified by the roleID.
-func (i *Impl) UpdateByID(roleID int, role *model.Role) error {
+func (s *Service) UpdateByID(roleID int, role *model.Role) error {
 	// check for existing role, because name of role is unique
-	if existingRole, err := i.roleRepo.CheckIfNameExists(role.Name, roleID); err != nil {
+	if existingRole, err := s.roleRepo.CheckIfNameExists(role.Name, roleID); err != nil {
 		log.Errorf("cannot find if role already exists with the provided name %s: %v", role.Name, err)
 		return util.ErrDatabaseError
 	} else if existingRole != nil {
@@ -60,7 +51,7 @@ func (i *Impl) UpdateByID(roleID int, role *model.Role) error {
 		return util.ErrResourceAlreadyExists
 	}
 
-	rowsAffected, err := i.roleRepo.UpdateName(roleID, role.Name)
+	rowsAffected, err := s.roleRepo.UpdateName(roleID, role.Name)
 	if err != nil {
 		log.Errorf("Database Error: %v", err)
 		return util.ErrDatabaseError

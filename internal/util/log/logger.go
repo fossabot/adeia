@@ -3,9 +3,9 @@ package log
 import (
 	"errors"
 	"strings"
-	"sync"
 
-	config "github.com/spf13/viper"
+	"adeia-api/internal/config"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -16,12 +16,9 @@ type Logger struct {
 }
 
 // logger is a centralized instance for logging. This is because many parts of
-// adeia-api, that are not part of the methods of APIServer, need access to the
+// adeia, that are not part of the methods of APIServer, need access to the
 // logger.
-var (
-	logger  *Logger
-	initLog = new(sync.Once)
-)
+var logger *Logger
 
 // levels is a map of supported log levels.
 var levels = map[string]zapcore.Level{
@@ -34,35 +31,27 @@ var levels = map[string]zapcore.Level{
 }
 
 // Init initializes a new logger instance based on config.
-func Init() error {
-	err := errors.New("logger already initialized")
+func Init(conf *config.LoggerConfig) error {
+	// parse log level
+	level, err := parseLevel(conf.Level)
+	if err != nil {
+		return err
+	}
 
-	initLog.Do(func() {
-		err = nil
+	// TODO: switch to custom config
+	cfg := zap.NewDevelopmentConfig()
+	cfg.Level = zap.NewAtomicLevelAt(level)
+	// TODO: setup log rotation
+	cfg.OutputPaths = conf.Paths
 
-		// parse log level
-		level, e := parseLevel(config.GetString("logger.level"))
-		if e != nil {
-			err = e
-			return
-		}
+	// build logger from config
+	l, err := cfg.Build(zap.AddCallerSkip(1))
+	if err != nil {
+		return err
+	}
+	logger = &Logger{l.Sugar()}
 
-		// TODO: switch to custom config
-		cfg := zap.NewDevelopmentConfig()
-		cfg.Level = zap.NewAtomicLevelAt(level)
-		// TODO: setup log rotation
-		cfg.OutputPaths = config.GetStringSlice("logger.paths")
-
-		// build logger from config
-		l, e := cfg.Build(zap.AddCallerSkip(1))
-		if e != nil {
-			err = e
-			return
-		}
-		logger = &Logger{l.Sugar()}
-	})
-
-	return err
+	return nil
 }
 
 // parseLevel returns the appropriate zapcore.Level for the passed-in string.
@@ -85,7 +74,7 @@ func Set(l *zap.SugaredLogger) {
 // ==========
 
 // We use wrapper methods so that we need not have verbose func calls like logger.log.info(...).
-// Doing this, we can do so with just logger.info(...).
+// Instead, the calls become just logger.info(...).
 
 // Sync wraps SugaredLogger's Sync.
 func Sync() error {

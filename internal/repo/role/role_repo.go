@@ -1,10 +1,8 @@
 package role
 
 import (
-	"database/sql"
-
-	"adeia-api/internal/db"
 	"adeia-api/internal/model"
+	"adeia-api/internal/repo"
 )
 
 const (
@@ -15,68 +13,57 @@ const (
 	queryUpdateName   = "UPDATE roles SET name=$1 WHERE id=$2"
 )
 
-// Repo is an interface that represents the list of functions that need to be
-// implemented for the Role model, by the repo.
-type Repo interface {
-	CheckIfNameExists(name string, id int) (*model.Role, error)
-	GetByID(id int) (*model.Role, error)
-	GetByName(name string) (*model.Role, error)
-	Insert(r *model.Role) (lastInsertID int, err error)
-	UpdateName(roleID int, name string) (rowsAffected int64, err error)
-}
-
-// Impl is an implementation of Repo for Postgres.
-type Impl struct {
-	db db.DB
+type Repo struct {
+	db repo.DB
 }
 
 // New creates a new Repo.
-func New(d db.DB) Repo {
-	return &Impl{d}
+func New(d repo.DB) *Repo {
+	return &Repo{d}
 }
 
 // Insert inserts a new role into the database.
-func (i *Impl) Insert(r *model.Role) (lastInsertID int, err error) {
-	return i.db.Insert(queryInsert, r)
+func (r *Repo) Insert(role *model.Role) (lastInsertID int, err error) {
+	return r.db.InsertNamed(queryInsert, role)
 }
 
 // GetByName gets a role by its name.
-func (i *Impl) GetByName(name string) (*model.Role, error) {
-	return i.get(queryByName, name)
+func (r *Repo) GetByName(name string) (*model.Role, error) {
+	return r.get(queryByName, name)
 }
 
 // CheckIfNameExists checks if name already exists except in the row identified
 // by id. This is useful to ensure that the update route (PUT) remains idempotent.
-func (i *Impl) CheckIfNameExists(name string, id int) (*model.Role, error) {
-	return i.get(queryIfNameExists, name, id)
+func (r *Repo) CheckIfNameExists(name string, id int) (*model.Role, error) {
+	return r.get(queryIfNameExists, name, id)
 }
 
 // GetByID gets a role by its id.
-func (i *Impl) GetByID(id int) (*model.Role, error) {
-	return i.get(queryByID, id)
+func (r *Repo) GetByID(id int) (*model.Role, error) {
+	return r.get(queryByID, id)
 }
 
 // UpdateName updates the name of a role.
-func (i *Impl) UpdateName(roleID int, name string) (rowsAffected int64, err error) {
-	result, err := i.db.Exec(queryUpdateName, name, roleID)
-	if err != nil {
-		return 0, err
-	}
-
-	rowsAffected, err = result.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return rowsAffected, nil
+func (r *Repo) UpdateName(roleID int, name string) (rowsAffected int64, err error) {
+	return r.db.Update(queryUpdateName, name, roleID)
 }
 
-func (i *Impl) get(query string, args ...interface{}) (*model.Role, error) {
-	var r model.Role
-	if err := i.db.Get(&r, query, args...); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+func (r *Repo) get(query string, args ...interface{}) (*model.Role, error) {
+	var role model.Role
+	if ok, err := r.db.GetOne(&role, query, args...); err != nil {
 		return nil, err
+	} else if !ok {
+		return nil, nil
 	}
-	return &r, nil
+	return &role, nil
+}
+
+func (r *Repo) getMany(query string, args ...interface{}) ([]*model.Role, error) {
+	var roles []*model.Role
+	if ok, err := r.db.GetMany(&roles, query, args...); err != nil {
+		return nil, err
+	} else if !ok {
+		return nil, nil
+	}
+	return roles, nil
 }

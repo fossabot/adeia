@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
+	"adeia-api/internal/util/constants"
 	"adeia-api/internal/util/log"
 
 	"github.com/golang/gddo/httputil/header"
-	config "github.com/spf13/viper"
 )
 
 type dataResponse struct {
@@ -62,7 +62,7 @@ func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) err
 	}
 
 	// set max body size
-	r.Body = http.MaxBytesReader(w, r.Body, config.GetInt64("server.max_request_body_size"))
+	r.Body = http.MaxBytesReader(w, r.Body, constants.MaxReqBodySize)
 
 	dec := json.NewDecoder(r.Body)
 	// TODO: decide if we need to disallow unknown fields

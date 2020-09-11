@@ -3,16 +3,12 @@ package config
 import (
 	"io/ioutil"
 	"os"
-	"sync"
 	"testing"
 
-	"adeia-api/internal/util/constants"
-
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
-func setupTestConf(content, pattern string) (*os.File, error) {
+func newTestConfigFile(content, pattern string) (*os.File, error) {
 	f, err := ioutil.TempFile("", pattern)
 	if err != nil {
 		return nil, err
@@ -38,7 +34,7 @@ server:
 logger:
   level: info
 `
-	validConfFile, err := setupTestConf(validConf, "adeia-valid-config")
+	validConfFile, err := newTestConfigFile(validConf, "adeia-valid-config")
 	if err != nil {
 		t.Fatal("error setting up valid test config")
 	}
@@ -46,68 +42,58 @@ logger:
 	invalidConf := `
 @
 `
-	invalidConfFile, err := setupTestConf(invalidConf, "adeia-invalid-config")
+	invalidConfFile, err := newTestConfigFile(invalidConf, "adeia-invalid-config")
 	if err != nil {
 		t.Fatal("error setting up invalid test config")
 	}
 
-	// cleanup when test ends
+	invalidConf2 := `
+server:
+  port: hello
+`
+	invalidConfFile2, err := newTestConfigFile(invalidConf2, "adeia-invalid-config-2")
+	if err != nil {
+		t.Fatal("error setting up invalid test config")
+	}
+
+	// cleanup when tests end
 	defer func() {
 		_ = os.Remove(validConfFile.Name())
 		_ = os.Remove(invalidConfFile.Name())
-		_ = os.Unsetenv(constants.EnvConfPathKey)
+		_ = os.Remove(invalidConfFile2.Name())
 	}()
 
 	t.Run("should load without any errors", func(t *testing.T) {
-		want := viper.New()
-		want.Set("server.port", "1234")
-		want.Set("server.host", "test")
-		want.Set("logger.level", "info")
+		want := Config{
+			ServerConfig: ServerConfig{
+				Port: 1234,
+				Host: "test",
+			},
+			LoggerConfig: LoggerConfig{
+				Level: "info",
+			},
+		}
 
-		_ = os.Setenv(constants.EnvConfPathKey, validConfFile.Name())
-		err := Load()
-		got := viper.GetViper()
-
+		got, err := Load(validConfFile.Name())
 		assert.Nil(t, err, "should not return error when config is valid")
 
-		assert.Equal(t, want.GetString("server.port"), got.GetString("server.port"), "should be equal")
-		assert.Equal(t, want.GetString("server.host"), got.GetString("server.host"), "should be equal")
-		assert.Equal(t, want.GetString("logger.level"), got.GetString("logger.level"), "should be equal")
+		assert.Equal(t, want.ServerConfig.Port, got.ServerConfig.Port)
+		assert.Equal(t, want.ServerConfig.Host, got.ServerConfig.Host)
+		assert.Equal(t, want.LoggerConfig.Level, got.LoggerConfig.Level)
 	})
 
-	initConf = new(sync.Once)
-
-	t.Run("should return error when file is nonexistent", func(t *testing.T) {
-		_ = os.Setenv(constants.EnvConfPathKey, "/tmp/foo")
-		err := Load()
+	t.Run("should return error when file is non-existent", func(t *testing.T) {
+		_, err := Load("/tmp/foo")
 		assert.Error(t, err, "should return error when file does not exist")
 	})
 
-	initConf = new(sync.Once)
-
 	t.Run("should return error when yaml is invalid", func(t *testing.T) {
-		_ = os.Setenv(constants.EnvConfPathKey, invalidConfFile.Name())
-		err := Load()
+		_, err := Load(invalidConfFile.Name())
 		assert.Error(t, err, "should return error when yaml is invalid")
 	})
-}
 
-func TestGetEnv(t *testing.T) {
-	t.Run("should return value from env if key is set", func(t *testing.T) {
-		_ = os.Setenv("DUMMY_KEY", "foo")
-
-		want := "foo"
-		got := getEnv("DUMMY_KEY", "bar")
-
-		assert.Equal(t, want, got, "should return value from env if key is set")
-	})
-
-	_ = os.Unsetenv("DUMMY_KEY")
-
-	t.Run("should return fallback if key is not set", func(t *testing.T) {
-		want := "bar"
-		got := getEnv("DUMMY_KEY", "bar")
-
-		assert.Equal(t, want, got, "should return fallback if key is not set")
+	t.Run("should return error unmarshalling fails", func(t *testing.T) {
+		_, err := Load(invalidConfFile2.Name())
+		assert.Error(t, err, "should return error unmarshalling fails")
 	})
 }

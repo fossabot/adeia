@@ -1,14 +1,9 @@
-package mail
+package mailer
 
 import (
-	"bytes"
-	"fmt"
-	"html/template"
 	"io"
-	"net/smtp"
 
 	"github.com/jordan-wright/email"
-	config "github.com/spf13/viper"
 )
 
 // EmailBuilder is an interface for email builder.
@@ -90,66 +85,4 @@ func (e *emailBuilderImpl) Attach(r io.Reader, filename string, c string) (Email
 // Build builds the email.
 func (e *emailBuilderImpl) Build() *email.Email {
 	return e.Email
-}
-
-// Mailer represents a mailer service.
-type Mailer interface {
-	Send(e *email.Email, template string, data interface{}) error
-}
-
-// mailerImpl implements Mailer.
-type mailerImpl struct {
-	from          string
-	smtpAddr      string
-	templateCache map[string]*template.Template
-	auth          smtp.Auth
-}
-
-// NewMailer creates a new Mailer.
-func NewMailer() (Mailer, error) {
-	// build new template cache
-	tc, err := newTemplateCache(templateDir)
-	if err != nil {
-		return nil, err
-	}
-
-	u := config.GetString("mailer.username")
-	p := config.GetString("mailer.password")
-	host := config.GetString("mailer.smtp_host")
-	port := config.GetString("mailer.smtp_port")
-	addr := host + ":" + port
-
-	// create auth
-	auth := smtp.PlainAuth("", u, p, host)
-	m := &mailerImpl{
-		from:          u,
-		templateCache: tc,
-		auth:          auth,
-		smtpAddr:      addr,
-	}
-
-	return m, nil
-}
-
-// Send sends the specified email with the template and data.
-func (m *mailerImpl) Send(e *email.Email, template string, data interface{}) error {
-	e.From = m.from
-
-	// read template from cache
-	ts, ok := m.templateCache[template]
-	if !ok {
-		return fmt.Errorf("email template with name %v does not exist", template)
-	}
-
-	// execute template
-	// we copy to buffer first to catch any runtime errors
-	buf := new(bytes.Buffer)
-	if err := ts.Execute(buf, data); err != nil {
-		return fmt.Errorf("error executing template: %v", err)
-	}
-	e.HTML = buf.Bytes()
-
-	// TODO: properly handle the error
-	go e.Send(m.smtpAddr, m.auth)
-	return nil
 }

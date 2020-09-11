@@ -3,7 +3,6 @@ server:
   port: 5000
   ratelimit_rate: 10              # no. of requests allowed per IP, per second
   ratelimit_window: 30            # (in seconds) cleanup window
-  max_request_body_size: 1048576  # max request body size (in bytes; default: 1MiB)
   jwt_secret: secret
 
 logger:

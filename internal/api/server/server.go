@@ -5,42 +5,38 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
 	"adeia-api/internal/api/middleware"
-	"adeia-api/internal/cache"
-	"adeia-api/internal/controller"
-	"adeia-api/internal/db"
+	"adeia-api/internal/config"
+	holidayController "adeia-api/internal/controller/holiday"
+	roleController "adeia-api/internal/controller/role"
+	userController "adeia-api/internal/controller/user"
 	"adeia-api/internal/util/constants"
 	"adeia-api/internal/util/log"
-	"adeia-api/internal/util/mail"
 	"adeia-api/internal/util/ratelimiter"
 
 	"github.com/go-chi/chi"
-	config "github.com/spf13/viper"
 )
 
 // Server is the struct that holds all of the components that need to be
 // injected.
 type Server struct {
-	cache            cache.Cache
-	db               db.DB
+	config           *config.ServerConfig
 	globalMiddleware middleware.FuncChain
-	mailer           mail.Mailer
 	srv              chi.Router
 }
 
 // New returns a new Server with the passed-in config.
-func New(d db.DB, c cache.Cache, m mail.Mailer) *Server {
+func New(conf *config.ServerConfig) *Server {
 	log.Debug("initializing new API server")
 
-	l := getGlobalRateLimiter()
+	l := getGlobalRateLimiter(conf.RateLimitRate, conf.RateLimitWindow)
 	return &Server{
-		cache:            c,
-		db:               d,
+		config:           conf,
 		globalMiddleware: middleware.NewChain(middleware.RateLimiter(l)),
-		mailer:           m,
 		srv:              chi.NewRouter(),
 	}
 }
@@ -49,19 +45,17 @@ func New(d db.DB, c cache.Cache, m mail.Mailer) *Server {
 func (s *Server) AddRoutes() {
 	log.Debug("registering handles to router")
 
-	controller.Init(s.db, s.cache, s.mailer)
-
 	// setup router
 	s.srv.Route("/"+constants.APIVersion, func(r chi.Router) {
-		r.Mount(controller.UserRoutes())
-		r.Mount(controller.HolidayRoutes())
-		r.Mount(controller.RoleRoutes())
+		r.Mount(userController.Routes())
+		r.Mount(holidayController.Routes())
+		r.Mount(roleController.Routes())
 	})
 }
 
 // Serve starts the server on the host and port, specified in the config.
 func (s *Server) Serve() {
-	addr := config.GetString("server.host") + ":" + config.GetString("server.port")
+	addr := s.config.Host + ":" + strconv.Itoa(s.config.Port)
 	srv := &http.Server{
 		// TODO: add timeouts
 		// TODO: add TLS support
@@ -104,15 +98,14 @@ func (s *Server) Serve() {
 	}
 }
 
-func getGlobalRateLimiter() ratelimiter.RateLimiter {
+func getGlobalRateLimiter(ratelimitRate, ratelimitWindow int) ratelimiter.RateLimiter {
 	// create a new ratelimiter
 	// when refillRate = bucketSize, say some value `x`, then user will be allowed to
 	// make a max. of `x` requests per second
-	rate := config.GetInt("server.ratelimit_rate")
 	limiter := ratelimiter.New(
-		float64(rate),
-		rate,
-		time.Duration(config.GetInt("server.ratelimit_window"))*time.Second,
+		float64(ratelimitRate),
+		ratelimitRate,
+		time.Duration(ratelimitWindow)*time.Second,
 	)
 
 	return limiter

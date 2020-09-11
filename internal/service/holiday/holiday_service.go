@@ -3,37 +3,25 @@ package user
 import (
 	"time"
 
-	"adeia-api/internal/cache"
-	"adeia-api/internal/db"
 	"adeia-api/internal/model"
-	holidayRepo "adeia-api/internal/repo/holiday"
+	"adeia-api/internal/service"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/constants"
 	"adeia-api/internal/util/log"
 )
 
-// Service contains all holiday-related business logic.
-type Service interface {
-	CreateHoliday(holiday model.Holiday) (*model.Holiday, error)
-	GetHolidaysByDate(date time.Time, timeUnit constants.TimeUnit) ([]*model.Holiday, error)
-	GetHolidayByID(id int) (*model.Holiday, error)
-	UpdateByID(id int, holiday *model.Holiday) error
-	DeleteByID(id int) error
-}
-
-// Impl is a Service implementation.
-type Impl struct {
-	holidayRepo holidayRepo.Repo
+type Service struct {
+	holidayRepo service.HolidayRepo
 }
 
 // New creates a new Service.
-func New(d db.DB, c cache.Cache) Service {
-	return &Impl{holidayRepo.New(d)}
+func New(h service.HolidayRepo) *Service {
+	return &Service{h}
 }
 
 // CreateHoliday creates a holiday.
-func (i *Impl) CreateHoliday(holiday model.Holiday) (*model.Holiday, error) {
-	existingHoliday, err := i.holidayRepo.GetByYMD(util.GetYMDFromTime(holiday.HolidayDate))
+func (s *Service) CreateHoliday(holiday model.Holiday) (*model.Holiday, error) {
+	existingHoliday, err := s.holidayRepo.GetByYMD(util.GetYMDFromTime(holiday.HolidayDate))
 	if err != nil {
 		log.Errorf("Error while fetching holiday from Database : %v", err)
 		return nil, util.ErrDatabaseError
@@ -42,7 +30,7 @@ func (i *Impl) CreateHoliday(holiday model.Holiday) (*model.Holiday, error) {
 		return nil, util.ErrResourceAlreadyExists
 	}
 
-	id, err := i.holidayRepo.Insert(&holiday)
+	id, err := s.holidayRepo.Insert(&holiday)
 	if err != nil {
 		log.Errorf("cannot create new holiday: %v", err)
 		return nil, util.ErrDatabaseError
@@ -52,7 +40,7 @@ func (i *Impl) CreateHoliday(holiday model.Holiday) (*model.Holiday, error) {
 }
 
 // GetHolidaysByDate gets all holidays using the provided date.
-func (i *Impl) GetHolidaysByDate(date time.Time, granularity constants.TimeUnit) ([]*model.Holiday, error) {
+func (s *Service) GetHolidaysByDate(date time.Time, granularity constants.TimeUnit) ([]*model.Holiday, error) {
 	var (
 		err      error
 		holidays []*model.Holiday
@@ -60,13 +48,13 @@ func (i *Impl) GetHolidaysByDate(date time.Time, granularity constants.TimeUnit)
 
 	switch granularity {
 	case constants.Year:
-		holidays, err = i.holidayRepo.GetByYear(date.Year())
+		holidays, err = s.holidayRepo.GetByYear(date.Year())
 	case constants.Month:
-		holidays, err = i.holidayRepo.GetByYearAndMonth(date.Year(), int(date.Month()))
+		holidays, err = s.holidayRepo.GetByYearAndMonth(date.Year(), int(date.Month()))
 	case constants.DayOfMonth:
-		holidays, err = i.holidayRepo.GetByYMD(util.GetYMDFromTime(date))
+		holidays, err = s.holidayRepo.GetByYMD(util.GetYMDFromTime(date))
 	case constants.Epoch:
-		holidays, err = i.holidayRepo.GetByEpoch(date.Unix())
+		holidays, err = s.holidayRepo.GetByEpoch(date.Unix())
 	default:
 		log.Error("specified granularity cannot be used")
 		return nil, util.ErrInternalServerError
@@ -80,8 +68,8 @@ func (i *Impl) GetHolidaysByDate(date time.Time, granularity constants.TimeUnit)
 }
 
 // GetHolidayByID gets a holiday by id.
-func (i *Impl) GetHolidayByID(id int) (*model.Holiday, error) {
-	holiday, err := i.holidayRepo.GetByID(id)
+func (s *Service) GetHolidayByID(id int) (*model.Holiday, error) {
+	holiday, err := s.holidayRepo.GetByID(id)
 	if err != nil {
 		log.Errorf("Database Error : %v", err)
 		return nil, util.ErrDatabaseError
@@ -94,8 +82,8 @@ func (i *Impl) GetHolidayByID(id int) (*model.Holiday, error) {
 }
 
 // UpdateByID updates a holiday by id.
-func (i *Impl) UpdateByID(id int, holiday *model.Holiday) error {
-	rowsAffected, err := i.holidayRepo.UpdateNameAndType(id, holiday.Name, holiday.HolidayType)
+func (s *Service) UpdateByID(id int, holiday *model.Holiday) error {
+	rowsAffected, err := s.holidayRepo.UpdateNameAndType(id, holiday.Name, holiday.HolidayType)
 	if err != nil {
 		log.Errorf("Database Error: %v", err)
 		return util.ErrDatabaseError
@@ -108,8 +96,8 @@ func (i *Impl) UpdateByID(id int, holiday *model.Holiday) error {
 }
 
 // DeleteByID deletes a holiday by id.
-func (i *Impl) DeleteByID(id int) error {
-	rowsAffected, err := i.holidayRepo.DeletedByID(id)
+func (s *Service) DeleteByID(id int) error {
+	rowsAffected, err := s.holidayRepo.DeletedByID(id)
 	if err != nil {
 		log.Errorf("Database Error : %v", err)
 		return util.ErrDatabaseError

@@ -5,15 +5,14 @@ import (
 	"net/http"
 	"strings"
 
-	"adeia-api/internal/service/session"
-	"adeia-api/internal/service/user"
+	"adeia-api/internal/controller"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/constants"
 	"adeia-api/internal/util/log"
 )
 
 // AllowAuthenticated is a middleware that allows only authenticated users.
-func AllowAuthenticated(sessionSvc session.Service, userSvc user.Service) Func {
+func AllowAuthenticated(sessionSvc controller.SessionService, userSvc controller.UserService) Func {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// get jwt from header

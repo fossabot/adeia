@@ -1,10 +1,8 @@
 package holiday
 
 import (
-	"database/sql"
-
-	"adeia-api/internal/db"
 	"adeia-api/internal/model"
+	"adeia-api/internal/repo"
 )
 
 const (
@@ -18,101 +16,78 @@ const (
 	queryDeleteByID           = "DELETE FROM holidays WHERE id=$1"
 )
 
-// Repo is an interface that represents the list of functions that need to be
-// implemented for the Holiday model, by the repo.
-type Repo interface {
-	DeletedByID(id int) (int64, error)
-	GetByEpoch(epoch int64) ([]*model.Holiday, error)
-	GetByID(id int) (*model.Holiday, error)
-	GetByYear(year int) ([]*model.Holiday, error)
-	GetByYearAndMonth(year, month int) ([]*model.Holiday, error)
-	GetByYMD(year, month, day int) ([]*model.Holiday, error)
-	Insert(u *model.Holiday) (int, error)
-	UpdateNameAndType(id int, name, holidayType string) (int64, error)
-}
-
-// Impl is an implementation of Repo for Postgres.
-type Impl struct {
-	db db.DB
+type Repo struct {
+	db repo.DB
 }
 
 // New creates a new Repo.
-func New(d db.DB) Repo {
-	return &Impl{d}
+func New(d repo.DB) *Repo {
+	return &Repo{d}
 }
 
 // Insert inserts a holiday using the db connection instance and returns the LastInsertID.
-func (i *Impl) Insert(h *model.Holiday) (int, error) {
-	return i.db.Insert(queryInsert, h)
+func (r *Repo) Insert(h *model.Holiday) (int, error) {
+	return r.db.InsertNamed(queryInsert, h)
 }
 
 // GetByID gets a holiday from db using the id.
-func (i *Impl) GetByID(id int) (*model.Holiday, error) {
+func (r *Repo) GetByID(id int) (*model.Holiday, error) {
 	var u model.Holiday
-	if err := i.db.Get(&u, queryByID, id); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
+	if ok, err := r.db.GetOne(&u, queryByID, id); err != nil {
 		return nil, err
+	} else if !ok {
+		return nil, nil
 	}
 	return &u, nil
 }
 
 // GetByEpoch gets holidays by epoch.
-func (i *Impl) GetByEpoch(epoch int64) ([]*model.Holiday, error) {
-	return i.get(queryByEpoch, epoch)
+func (r *Repo) GetByEpoch(epoch int64) ([]*model.Holiday, error) {
+	return r.getMany(queryByEpoch, epoch)
 }
 
 // GetByYear gets holidays by year.
-func (i *Impl) GetByYear(year int) ([]*model.Holiday, error) {
-	return i.get(queryByYear, year)
+func (r *Repo) GetByYear(year int) ([]*model.Holiday, error) {
+	return r.getMany(queryByYear, year)
 }
 
 // GetByYearAndMonth gets holidays by year and month.
-func (i *Impl) GetByYearAndMonth(year, month int) ([]*model.Holiday, error) {
-	return i.get(queryByYearAndMonth, year, month)
+func (r *Repo) GetByYearAndMonth(year, month int) ([]*model.Holiday, error) {
+	return r.getMany(queryByYearAndMonth, year, month)
 }
 
 // GetByYMD gets holidays by year, month and day.
-func (i *Impl) GetByYMD(year, month, day int) ([]*model.Holiday, error) {
-	return i.get(queryByYearAndMonthAndDay, year, month, day)
-}
-
-func (i *Impl) get(query string, args ...interface{}) ([]*model.Holiday, error) {
-	var u []*model.Holiday
-	if err := i.db.Select(&u, query, args...); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return u, nil
+func (r *Repo) GetByYMD(year, month, day int) ([]*model.Holiday, error) {
+	return r.getMany(queryByYearAndMonthAndDay, year, month, day)
 }
 
 // UpdateNameAndType updates a holiday's name and type.
-func (i *Impl) UpdateNameAndType(id int, name, holidayType string) (int64, error) {
-	result, err := i.db.Exec(queryUpdateNameAndType, name, holidayType, id)
-	if err != nil {
-		return 0, err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return rowsAffected, nil
+func (r *Repo) UpdateNameAndType(id int, name, holidayType string) (int64, error) {
+	return r.db.Update(queryUpdateNameAndType, name, holidayType, id)
 }
 
 // DeletedByID deletes a holiday by id.
-func (i *Impl) DeletedByID(id int) (int64, error) {
-	result, err := i.db.Exec(queryDeleteByID, id)
-	if err != nil {
-		return 0, err
-	}
+func (r *Repo) DeletedByID(id int) (int64, error) {
+	return r.db.Delete(queryDeleteByID, id)
+}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return 0, err
+// get is a generic getter that other `Get*` methods wrap on.
+func (r *Repo) get(query string, args ...interface{}) (*model.Holiday, error) {
+	h := model.Holiday{}
+	if ok, err := r.db.GetOne(&h, query, args...); err != nil {
+		return nil, err
+	} else if !ok {
+		return nil, nil
 	}
-	return rowsAffected, nil
+	return &h, nil
+}
+
+func (r *Repo) getMany(query string, args ...interface{}) ([]*model.Holiday, error) {
+	var u []*model.Holiday
+	if ok, err := r.db.GetMany(&u, query, args...); err != nil {
+		return nil, err
+	} else if !ok {
+		return nil, nil
+	}
+	return u, nil
 }

@@ -1,37 +1,22 @@
 package user
 
 import (
-	"adeia-api/internal/cache"
-	"adeia-api/internal/db"
 	"adeia-api/internal/model"
-	userRepo "adeia-api/internal/repo/user"
+	"adeia-api/internal/service"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/crypto"
 	"adeia-api/internal/util/log"
-	"adeia-api/internal/util/mail"
 )
 
-// Service contains all user-related business logic.
-type Service interface {
-	ActivateUser(empID, email, password string) (*model.User, error)
-	CreateUser(name, email, empID, designation string) (*model.User, error)
-	DeleteUser(empID string) error
-	GetUserByEmpID(empID string) (*model.User, error)
-	GetUserByID(id int) (*model.User, error)
-	LoginUser(email, password string) (*model.User, error)
-}
-
-// Impl is a Service implementation.
-type Impl struct {
-	cache    cache.Cache
-	mailer   mail.Mailer
-	userRepo userRepo.Repo
+type Service struct {
+	cache    service.Cache
+	mailer   service.Mailer
+	userRepo service.UserRepo
 }
 
 // New creates a new Service.
-func New(d db.DB, c cache.Cache, m mail.Mailer) Service {
-	u := userRepo.New(d)
-	return &Impl{
+func New(u service.UserRepo, c service.Cache, m service.Mailer) *Service {
+	return &Service{
 		cache:    c,
 		mailer:   m,
 		userRepo: u,
@@ -39,9 +24,9 @@ func New(d db.DB, c cache.Cache, m mail.Mailer) Service {
 }
 
 // ActivateUser activates an user account.
-func (i *Impl) ActivateUser(empID, email, password string) (*model.User, error) {
+func (s *Service) ActivateUser(empID, email, password string) (*model.User, error) {
 	// check if user exists
-	usr, err := i.userRepo.GetByEmpID(empID)
+	usr, err := s.userRepo.GetByEmpID(empID)
 	if err != nil {
 		log.Errorf("cannot find user by empID and email: %v", err)
 		return nil, util.ErrDatabaseError
@@ -61,7 +46,7 @@ func (i *Impl) ActivateUser(empID, email, password string) (*model.User, error) 
 		log.Errorf("cannot generate hash for password: %v", err)
 		return nil, util.ErrInternalServerError
 	}
-	if err := i.userRepo.UpdatePasswordAndIsActivated(usr, hash, true); err != nil {
+	if err := s.userRepo.UpdatePasswordAndIsActivated(usr, hash, true); err != nil {
 		log.Errorf("cannot update user: %v", err)
 		return nil, util.ErrDatabaseError
 	}
@@ -70,9 +55,9 @@ func (i *Impl) ActivateUser(empID, email, password string) (*model.User, error) 
 }
 
 // CreateUser creates a new user.
-func (i *Impl) CreateUser(name, email, empID, designation string) (*model.User, error) {
+func (s *Service) CreateUser(name, email, empID, designation string) (*model.User, error) {
 	// check if user already exists
-	usr, err := i.userRepo.GetByEmailInclDeleted(email)
+	usr, err := s.userRepo.GetByEmailInclDeleted(email)
 	if err != nil {
 		log.Errorf("cannot find if an user already exists with the provided email: %v", err)
 		return nil, util.ErrDatabaseError
@@ -96,7 +81,7 @@ func (i *Impl) CreateUser(name, email, empID, designation string) (*model.User, 
 	}
 
 	// create user
-	if _, err = i.userRepo.Insert(u); err != nil {
+	if _, err = s.userRepo.Insert(u); err != nil {
 		log.Error("cannot create new user: %v", err)
 		return nil, util.ErrDatabaseError
 	}
@@ -104,8 +89,8 @@ func (i *Impl) CreateUser(name, email, empID, designation string) (*model.User, 
 }
 
 // DeleteUser deletes a user.
-func (i *Impl) DeleteUser(empID string) error {
-	rowsAffected, err := i.userRepo.DeleteByEmpID(empID)
+func (s *Service) DeleteUser(empID string) error {
+	rowsAffected, err := s.userRepo.DeleteByEmpID(empID)
 	if err != nil {
 		log.Errorf("cannot delete user: %v", err)
 		return util.ErrDatabaseError
@@ -118,8 +103,8 @@ func (i *Impl) DeleteUser(empID string) error {
 }
 
 // GetUserByEmpID gets a user using the provided empID.
-func (i *Impl) GetUserByEmpID(empID string) (*model.User, error) {
-	usr, err := i.userRepo.GetByEmpID(empID)
+func (s *Service) GetUserByEmpID(empID string) (*model.User, error) {
+	usr, err := s.userRepo.GetByEmpID(empID)
 	if err != nil {
 		log.Errorf("cannot find user with the provided employee ID: %v", err)
 		return nil, util.ErrDatabaseError
@@ -132,8 +117,8 @@ func (i *Impl) GetUserByEmpID(empID string) (*model.User, error) {
 }
 
 // GetUserByID gets a user using the provided id.
-func (i *Impl) GetUserByID(id int) (*model.User, error) {
-	usr, err := i.userRepo.GetByID(id)
+func (s *Service) GetUserByID(id int) (*model.User, error) {
+	usr, err := s.userRepo.GetByID(id)
 	if err != nil {
 		log.Errorf("cannot find user with the provided ID: %v", err)
 		return nil, util.ErrDatabaseError
@@ -146,9 +131,9 @@ func (i *Impl) GetUserByID(id int) (*model.User, error) {
 }
 
 // LoginUser logs in a user.
-func (i *Impl) LoginUser(email, password string) (*model.User, error) {
+func (s *Service) LoginUser(email, password string) (*model.User, error) {
 	// check if user exists
-	usr, err := i.userRepo.GetByEmail(email)
+	usr, err := s.userRepo.GetByEmail(email)
 	if err != nil {
 		log.Errorf("cannot find user by email: %v", err)
 		return nil, util.ErrDatabaseError

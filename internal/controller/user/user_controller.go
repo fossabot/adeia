@@ -1,9 +1,10 @@
-package controller
+package user
 
 import (
 	"net/http"
 
 	"adeia-api/internal/api/middleware"
+	"adeia-api/internal/controller"
 	"adeia-api/internal/model"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/constants"
@@ -12,8 +13,8 @@ import (
 	"github.com/go-chi/chi"
 )
 
-// UserRoutes returns a slice containing all user-related routes.
-func UserRoutes() (string, chi.Router) {
+// Routes returns a slice containing all user-related routes.
+func Routes() (string, chi.Router) {
 	r := chi.NewRouter()
 
 	r.Method(http.MethodPost, "/", CreateUser())
@@ -22,7 +23,7 @@ func UserRoutes() (string, chi.Router) {
 
 	r.Group(func(r chi.Router) {
 		// protected routes
-		r.Use(middleware.AllowAuthenticated(sessionSvc, usrSvc))
+		r.Use(middleware.AllowAuthenticated(controller.SessionSvc, controller.UserSvc))
 
 		r.Method(http.MethodPost, "/sessions/refresh", RefreshToken())
 		r.Method(http.MethodPost, "/sessions/destroy", LogoutUser())
@@ -52,7 +53,7 @@ func RefreshToken() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		refreshToken, err := sessionSvc.ReadRefreshTokenCookie(r)
+		refreshToken, err := controller.SessionSvc.ReadRefreshTokenCookie(r)
 		if err != nil {
 			util.RespondWithError(w, util.ErrUnauthorized)
 			return
@@ -72,14 +73,14 @@ func RefreshToken() http.HandlerFunc {
 		}
 
 		// refresh the tokens
-		newAccessToken, newRefreshToken, err := sessionSvc.RefreshToken(user.ID, user.EmployeeID, refreshToken)
+		newAccessToken, newRefreshToken, err := controller.SessionSvc.RefreshToken(user.ID, user.EmployeeID, refreshToken)
 		if err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
 		}
 
 		// set new refreshToken cookie
-		sessionSvc.AddRefreshTokenCookie(w, newRefreshToken)
+		controller.SessionSvc.AddRefreshTokenCookie(w, newRefreshToken)
 
 		// send new access token
 		resp := response{
@@ -102,7 +103,7 @@ func LogoutUser() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get refresh token from cookie
-		refreshToken, err := sessionSvc.ReadRefreshTokenCookie(r)
+		refreshToken, err := controller.SessionSvc.ReadRefreshTokenCookie(r)
 		if err != nil {
 			util.RespondWithError(w, util.ErrUnauthorized)
 			return
@@ -122,7 +123,7 @@ func LogoutUser() http.HandlerFunc {
 		}
 
 		// destroy session
-		if err := sessionSvc.Destroy(user.ID, refreshToken); err != nil {
+		if err := controller.SessionSvc.Destroy(user.ID, refreshToken); err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
 		}
@@ -166,21 +167,21 @@ func LoginUser() http.HandlerFunc {
 		}
 
 		// check credentials
-		usr, err := usrSvc.LoginUser(rBody.Email, rBody.Password)
+		usr, err := controller.UserSvc.LoginUser(rBody.Email, rBody.Password)
 		if err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
 		}
 
 		// create new session and add to cookie
-		accessToken, refreshToken, err := sessionSvc.NewSession(usr.ID, usr.EmployeeID)
+		accessToken, refreshToken, err := controller.SessionSvc.NewSession(usr.ID, usr.EmployeeID)
 		if err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
 		}
 
 		// set refreshToken in cookie
-		sessionSvc.AddRefreshTokenCookie(w, refreshToken)
+		controller.SessionSvc.AddRefreshTokenCookie(w, refreshToken)
 
 		// send access token
 		resp := response{
@@ -192,7 +193,7 @@ func LoginUser() http.HandlerFunc {
 }
 
 // DeleteUser deletes an user account.
-func DeleteUser() *ProtectedHandler {
+func DeleteUser() *controller.ProtectedHandler {
 	validator := func(id string) *validation.Validation {
 		return &validation.Validation{
 			Errors: validation.Errors{
@@ -201,7 +202,7 @@ func DeleteUser() *ProtectedHandler {
 		}
 	}
 
-	return &ProtectedHandler{
+	return &controller.ProtectedHandler{
 		PermissionName: "DELETE_USERS",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			// from outside, the id appears to be the primary key.
@@ -214,7 +215,7 @@ func DeleteUser() *ProtectedHandler {
 			}
 
 			// delete user
-			if err := usrSvc.DeleteUser(id); err != nil {
+			if err := controller.UserSvc.DeleteUser(id); err != nil {
 				util.RespondWithError(w, err.(util.ResponseError))
 				return
 			}
@@ -258,7 +259,7 @@ func ActivateUser() http.HandlerFunc {
 		}
 
 		// activate user
-		usr, err := usrSvc.ActivateUser(rBody.EmployeeID, rBody.Email, rBody.Password)
+		usr, err := controller.UserSvc.ActivateUser(rBody.EmployeeID, rBody.Email, rBody.Password)
 		if err != nil {
 			util.RespondWithError(w, err.(util.ResponseError))
 			return
@@ -270,7 +271,7 @@ func ActivateUser() http.HandlerFunc {
 }
 
 // CreateUser creates a new user.
-func CreateUser() *ProtectedHandler {
+func CreateUser() *controller.ProtectedHandler {
 	type request struct {
 		Name        string `json:"name"`
 		EmployeeID  string `json:"employee_id,omitempty"`
@@ -289,7 +290,7 @@ func CreateUser() *ProtectedHandler {
 		}
 	}
 
-	return &ProtectedHandler{
+	return &controller.ProtectedHandler{
 		PermissionName: "CREATE_USERS",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			// decode request body
@@ -305,7 +306,7 @@ func CreateUser() *ProtectedHandler {
 			}
 
 			// create user
-			usr, err := usrSvc.CreateUser(
+			usr, err := controller.UserSvc.CreateUser(
 				rBody.Name,
 				rBody.Email,
 				rBody.EmployeeID,
@@ -324,7 +325,7 @@ func CreateUser() *ProtectedHandler {
 }
 
 // GetUser gets the user using the employee_id.
-func GetUser() *ProtectedHandler {
+func GetUser() *controller.ProtectedHandler {
 	validator := func(id string) *validation.Validation {
 		return &validation.Validation{
 			Errors: validation.Errors{
@@ -333,7 +334,7 @@ func GetUser() *ProtectedHandler {
 		}
 	}
 
-	return &ProtectedHandler{
+	return &controller.ProtectedHandler{
 		PermissionName: "GET_USERS",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			// from outside, the id appears to be the primary key.
@@ -346,7 +347,7 @@ func GetUser() *ProtectedHandler {
 			}
 
 			// get user
-			usr, err := usrSvc.GetUserByEmpID(id)
+			usr, err := controller.UserSvc.GetUserByEmpID(id)
 			if err != nil {
 				util.RespondWithError(w, err.(util.ResponseError))
 				return

@@ -1,10 +1,10 @@
 package log
 
 import (
-	"sync"
 	"testing"
 
-	config "github.com/spf13/viper"
+	"adeia-api/internal/config"
+
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
@@ -26,29 +26,30 @@ func TestParseLevel(t *testing.T) {
 
 func TestInit(t *testing.T) {
 	t.Run("should not return any error when config is valid", func(t *testing.T) {
-		config.Set("logger.level", "debug")
+		c := config.LoggerConfig{
+			Level: "debug",
+		}
 
-		err := Init()
+		err := Init(&c)
 		assert.Nil(t, err, "should not return any error when config is valid")
 	})
 
-	// reset sync.Once because logger was already initialized in the previous test
-	initLog = new(sync.Once)
-
 	t.Run("should return error when level is invalid", func(t *testing.T) {
-		config.Set("logger.level", "debug123")
+		c := config.LoggerConfig{
+			Level: "debug123",
+		}
 
-		err := Init()
+		err := Init(&c)
 		assert.Error(t, err, "should return error when level is invalid")
 	})
 
-	initLog = new(sync.Once)
-
 	t.Run("should return error when config is invalid", func(t *testing.T) {
-		config.Set("logger.level", "debug")
-		config.Set("logger.paths", []string{""})
+		c := config.LoggerConfig{
+			Level: "debug",
+			Paths: []string{""},
+		}
 
-		err := Init()
+		err := Init(&c)
 		assert.Error(t, err, "should return error when config is invalid")
 	})
 }

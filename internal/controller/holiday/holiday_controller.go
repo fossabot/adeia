@@ -1,10 +1,11 @@
-package controller
+package holiday
 
 import (
 	"net/http"
 	"strconv"
 	"time"
 
+	"adeia-api/internal/controller"
 	"adeia-api/internal/model"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/constants"
@@ -13,8 +14,8 @@ import (
 	"github.com/go-chi/chi"
 )
 
-// HolidayRoutes returns a slice containing all holiday-related routes.
-func HolidayRoutes() (string, chi.Router) {
+// Routes returns a slice containing all holiday-related routes.
+func Routes() (string, chi.Router) {
 	r := chi.NewRouter()
 
 	r.Method(http.MethodPost, "/", CreateHoliday())
@@ -33,7 +34,7 @@ func HolidayRoutes() (string, chi.Router) {
 }
 
 // CreateHoliday creates a new holiday.
-func CreateHoliday() *ProtectedHandler {
+func CreateHoliday() *controller.ProtectedHandler {
 	type request struct {
 		Name string `json:"name"`
 		Type string `json:"type"`
@@ -50,7 +51,7 @@ func CreateHoliday() *ProtectedHandler {
 		}
 	}
 
-	return &ProtectedHandler{
+	return &controller.ProtectedHandler{
 		PermissionName: "CREATE_HOLIDAYS",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			var rBody request
@@ -67,7 +68,7 @@ func CreateHoliday() *ProtectedHandler {
 			// create holiday
 			date, _ := time.Parse(time.RFC3339, rBody.Date)
 			holiday := model.Holiday{Name: rBody.Name, HolidayType: rBody.Type, HolidayDate: date}
-			response, err := holidaySvc.CreateHoliday(holiday)
+			response, err := controller.HolidaySvc.CreateHoliday(holiday)
 			if err != nil {
 				util.RespondWithError(w, err.(util.ResponseError))
 				return
@@ -80,7 +81,7 @@ func CreateHoliday() *ProtectedHandler {
 }
 
 // GetHolidaysByYear returns the holidays in the provided year.
-func GetHolidaysByYear() *ProtectedHandler {
+func GetHolidaysByYear() *controller.ProtectedHandler {
 	validator := func(year string) *validation.Validation {
 		return &validation.Validation{
 			Errors: validation.Errors{
@@ -89,7 +90,7 @@ func GetHolidaysByYear() *ProtectedHandler {
 		}
 	}
 
-	return &ProtectedHandler{
+	return &controller.ProtectedHandler{
 		PermissionName: "GET_HOLIDAYS",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			year := chi.URLParam(r, "year")
@@ -100,7 +101,7 @@ func GetHolidaysByYear() *ProtectedHandler {
 
 			// get holidays
 			y, _ := strconv.Atoi(year)
-			holidays, err := holidaySvc.GetHolidaysByDate(util.GetTime(y, 1, 1), constants.Year)
+			holidays, err := controller.HolidaySvc.GetHolidaysByDate(util.GetTime(y, 1, 1), constants.Year)
 			if err != nil {
 				util.RespondWithError(w, err.(util.ResponseError))
 				return
@@ -111,7 +112,7 @@ func GetHolidaysByYear() *ProtectedHandler {
 }
 
 // GetHolidaysByYearAndMonth returns the holidays in the provided year and month.
-func GetHolidaysByYearAndMonth() *ProtectedHandler {
+func GetHolidaysByYearAndMonth() *controller.ProtectedHandler {
 	validator := func(year, month string) *validation.Validation {
 		return &validation.Validation{
 			Errors: validation.Errors{
@@ -121,7 +122,7 @@ func GetHolidaysByYearAndMonth() *ProtectedHandler {
 		}
 	}
 
-	return &ProtectedHandler{
+	return &controller.ProtectedHandler{
 		PermissionName: "GET_HOLIDAYS",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			year := chi.URLParam(r, "year")
@@ -134,7 +135,7 @@ func GetHolidaysByYearAndMonth() *ProtectedHandler {
 			// get holidays
 			y, _ := strconv.Atoi(year)
 			m, _ := strconv.Atoi(month)
-			holidays, err := holidaySvc.GetHolidaysByDate(util.GetTime(y, m, 1), constants.Month)
+			holidays, err := controller.HolidaySvc.GetHolidaysByDate(util.GetTime(y, m, 1), constants.Month)
 			if err != nil {
 				util.RespondWithError(w, err.(util.ResponseError))
 				return
@@ -145,7 +146,7 @@ func GetHolidaysByYearAndMonth() *ProtectedHandler {
 }
 
 // GetHolidaysByDay returns the holiday by the provided date.
-func GetHolidaysByDay() *ProtectedHandler {
+func GetHolidaysByDay() *controller.ProtectedHandler {
 	validator := func(year, month, day string) *validation.Validation {
 		return &validation.Validation{
 			Errors: validation.Errors{
@@ -156,7 +157,7 @@ func GetHolidaysByDay() *ProtectedHandler {
 		}
 	}
 
-	return &ProtectedHandler{
+	return &controller.ProtectedHandler{
 		PermissionName: "GET_HOLIDAYS",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			year := chi.URLParam(r, "year")
@@ -170,7 +171,7 @@ func GetHolidaysByDay() *ProtectedHandler {
 			y, _ := strconv.Atoi(year)
 			m, _ := strconv.Atoi(month)
 			d, _ := strconv.Atoi(day)
-			holidays, err := holidaySvc.GetHolidaysByDate(util.GetTime(y, m, d), constants.DayOfMonth)
+			holidays, err := controller.HolidaySvc.GetHolidaysByDate(util.GetTime(y, m, d), constants.DayOfMonth)
 			if err != nil {
 				util.RespondWithError(w, err.(util.ResponseError))
 				return
@@ -181,7 +182,7 @@ func GetHolidaysByDay() *ProtectedHandler {
 }
 
 // GetHolidayByID gets a holiday by id.
-func GetHolidayByID() *ProtectedHandler {
+func GetHolidayByID() *controller.ProtectedHandler {
 	validator := func(id string) *validation.Validation {
 		return &validation.Validation{
 			Errors: validation.Errors{
@@ -190,7 +191,7 @@ func GetHolidayByID() *ProtectedHandler {
 		}
 	}
 
-	return &ProtectedHandler{
+	return &controller.ProtectedHandler{
 		PermissionName: "GET_HOLIDAYS",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			id := chi.URLParam(r, "id")
@@ -200,7 +201,7 @@ func GetHolidayByID() *ProtectedHandler {
 			}
 
 			holidayID, _ := strconv.Atoi(id)
-			holiday, err := holidaySvc.GetHolidayByID(holidayID)
+			holiday, err := controller.HolidaySvc.GetHolidayByID(holidayID)
 			if err != nil {
 				util.RespondWithError(w, err.(util.ResponseError))
 				return
@@ -211,7 +212,7 @@ func GetHolidayByID() *ProtectedHandler {
 }
 
 // DeleteHolidayByID deletes a holiday by id.
-func DeleteHolidayByID() *ProtectedHandler {
+func DeleteHolidayByID() *controller.ProtectedHandler {
 	validator := func(id string) *validation.Validation {
 		return &validation.Validation{
 			Errors: validation.Errors{
@@ -220,7 +221,7 @@ func DeleteHolidayByID() *ProtectedHandler {
 		}
 	}
 
-	return &ProtectedHandler{
+	return &controller.ProtectedHandler{
 		PermissionName: "DELETE_HOLIDAYS",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			id := chi.URLParam(r, "id")
@@ -231,7 +232,7 @@ func DeleteHolidayByID() *ProtectedHandler {
 
 			// delete holiday
 			holidayID, _ := strconv.Atoi(id)
-			if err := holidaySvc.DeleteByID(holidayID); err != nil {
+			if err := controller.HolidaySvc.DeleteByID(holidayID); err != nil {
 				util.RespondWithError(w, err.(util.ResponseError))
 				return
 			}
@@ -241,7 +242,7 @@ func DeleteHolidayByID() *ProtectedHandler {
 }
 
 // UpdateHolidayByID updates a holiday.
-func UpdateHolidayByID() *ProtectedHandler {
+func UpdateHolidayByID() *controller.ProtectedHandler {
 	type request struct {
 		Name string `json:"name"`
 		Type string `json:"type"`
@@ -257,7 +258,7 @@ func UpdateHolidayByID() *ProtectedHandler {
 		}
 	}
 
-	return &ProtectedHandler{
+	return &controller.ProtectedHandler{
 		PermissionName: "UPDATE_HOLIDAYS",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			id := chi.URLParam(r, "id")
@@ -275,7 +276,7 @@ func UpdateHolidayByID() *ProtectedHandler {
 			// update holiday
 			holidayID, _ := strconv.Atoi(id)
 			holiday := model.Holiday{HolidayType: rBody.Type, Name: rBody.Name}
-			if err := holidaySvc.UpdateByID(holidayID, &holiday); err != nil {
+			if err := controller.HolidaySvc.UpdateByID(holidayID, &holiday); err != nil {
 				util.RespondWithError(w, err.(util.ResponseError))
 				return
 			}

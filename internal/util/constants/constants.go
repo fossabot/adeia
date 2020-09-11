@@ -4,6 +4,8 @@ package constants
 type TimeUnit string
 
 const (
+	// MaxReqBodySize (in bytes; default: 1MiB)
+	MaxReqBodySize = 1048576
 	// APIVersion represents the current major version of the API. It is used as URL prefix.
 	APIVersion = "v1"
 

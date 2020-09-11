@@ -53,19 +53,19 @@ func New(refillRate float64, bucketSize int, duration time.Duration) *Impl {
 	return rl
 }
 
-// GetLimiter returns the *rate.Limiter for the provided ip.
+// GetLimiter returns the *rate.Limiter for the provided IP.
 func (rl *Impl) GetLimiter(ip string) *rate.Limiter {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
 	v, exists := rl.visitors[ip]
 	if exists {
-		// ip exists, update lastSeen
+		// IP exists, update lastSeen
 		v.lastSeen = time.Now()
 		return v.limiter
 	}
 
-	// ip does not exist, so add it to visitors
+	// IP does not exist, so add it to visitors
 	rl.visitors[ip] = &visitor{
 		limiter:  rate.NewLimiter(rl.refillRate, rl.bucketSize),
 		lastSeen: time.Now(),

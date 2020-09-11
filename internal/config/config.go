@@ -1,85 +1,50 @@
 package config
 
 import (
-	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"adeia-api/internal/util/constants"
 
 	"github.com/spf13/viper"
 )
 
-var (
-	// initConf is used to ensure that config is initialized only once.
-	initConf = new(sync.Once)
+// Load loads config from confPath into viper. The file must be readable and
+// must contain valid YAML.
+func Load(confPath string) (*Config, error) {
+	v := viper.New()
+	basePath := filepath.Base(confPath)
 
-	// envOverrides holds all environment value keys for overriding the config.
-	envOverrides = map[string]string{
-		// server overrides
-		"server.jwt_secret": constants.EnvServerJWTSecretKey,
+	v.SetConfigName(strings.TrimSuffix(basePath, filepath.Ext(basePath)))
+	v.AddConfigPath(filepath.Dir(confPath))
+	v.SetConfigType("yaml")
 
-		// mailer overrides
-		"mailer.username": constants.EnvMailerUsernameKey,
-		"mailer.password": constants.EnvMailerPasswordKey,
+	// set env overrides for secrets
+	setEnvOverrides(v, constants.EnvPrefix, envOverrides)
 
-		// database env overrides
-		"database.dbname":   constants.EnvDBNameKey,
-		"database.user":     constants.EnvDBUserKey,
-		"database.password": constants.EnvDBPasswordKey,
-		"database.host":     constants.EnvDBHostKey,
-		"database.port":     constants.EnvDBPortKey,
-
-		// cache env overrides
-		"cache.host": constants.EnvCacheHostKey,
-		"cache.port": constants.EnvCachePortKey,
+	// read config
+	err := v.ReadInConfig()
+	if err != nil {
+		return nil, fmt.Errorf("cannot read config: %v", err)
 	}
-)
 
-func setEnvOverrides() {
-	viper.SetEnvPrefix(constants.EnvPrefix)
-	for k, v := range envOverrides {
+	// unmarshal config
+	var c Config
+	err = v.Unmarshal(&c)
+	if err != nil {
+		return nil, fmt.Errorf("cannot unmarshal to config struct: %v", err)
+	}
+
+	return &c, nil
+}
+
+// setEnvOverrides sets the keys of env variables that can override the config, in viper.
+func setEnvOverrides(v *viper.Viper, envPrefix string, overrides map[string]string) {
+	v.SetEnvPrefix(envPrefix)
+	for key, val := range overrides {
 		// The only error that is returned from this method is when len(input) == 0.
 		// So we can safely ignore it.
-		_ = viper.BindEnv(k, v)
+		_ = v.BindEnv(key, val)
 	}
-}
-
-// Load loads YAML from file specified by EnvConfPathKey into viper.
-// The file must be a readable file containing valid YAML.
-func Load() error {
-	err := errors.New("config already loaded")
-
-	initConf.Do(func() {
-		err = nil
-
-		confPath := getEnv(constants.EnvConfPathKey, "config/config.yaml")
-		basePath := filepath.Base(confPath)
-
-		viper.SetConfigName(strings.TrimSuffix(basePath, filepath.Ext(basePath)))
-		viper.AddConfigPath(filepath.Dir(confPath))
-		viper.SetConfigType("yaml")
-
-		// set env overrides for secrets
-		setEnvOverrides()
-
-		e := viper.ReadInConfig()
-		if e != nil {
-			err = fmt.Errorf("cannot read config: %v", e)
-			return
-		}
-	})
-
-	return err
-}
-
-// getEnv returns value from env if key is present, otherwise returns fallback.
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
 }

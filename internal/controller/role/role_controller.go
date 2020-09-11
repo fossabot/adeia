@@ -1,4 +1,4 @@
-package controller
+package role
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"adeia-api/internal/api/middleware"
+	"adeia-api/internal/controller"
 	"adeia-api/internal/model"
 	"adeia-api/internal/util"
 	"adeia-api/internal/util/validation"
@@ -13,12 +14,12 @@ import (
 	"github.com/go-chi/chi"
 )
 
-// RoleRoutes returns a slice containing all role-related routes.
-func RoleRoutes() (string, chi.Router) {
+// Routes returns a slice containing all role-related routes.
+func Routes() (string, chi.Router) {
 	r := chi.NewRouter()
 
 	// only authenticated users can create/edit roles
-	r.Use(middleware.AllowAuthenticated(sessionSvc, usrSvc))
+	r.Use(middleware.AllowAuthenticated(controller.SessionSvc, controller.UserSvc))
 	r.Method(http.MethodPost, "/", CreateRole())
 	r.Method(http.MethodPut, "/{id}", UpdateRole())
 
@@ -26,7 +27,7 @@ func RoleRoutes() (string, chi.Router) {
 }
 
 // CreateRole creates a new role.
-func CreateRole() *ProtectedHandler {
+func CreateRole() *controller.ProtectedHandler {
 	type request struct {
 		Name string `json:"name"`
 	}
@@ -39,7 +40,7 @@ func CreateRole() *ProtectedHandler {
 		}
 	}
 
-	return &ProtectedHandler{
+	return &controller.ProtectedHandler{
 		PermissionName: "CREATE_ROLES",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			// decode request body
@@ -55,7 +56,7 @@ func CreateRole() *ProtectedHandler {
 			}
 
 			// create role
-			role, err := roleSvc.CreateRole(rBody.Name)
+			role, err := controller.RoleSvc.CreateRole(rBody.Name)
 			if err != nil {
 				util.RespondWithError(w, err.(util.ResponseError))
 				return
@@ -69,7 +70,7 @@ func CreateRole() *ProtectedHandler {
 }
 
 // UpdateRole updates a role.
-func UpdateRole() *ProtectedHandler {
+func UpdateRole() *controller.ProtectedHandler {
 	type request struct {
 		Name string `json:"name"`
 	}
@@ -83,7 +84,7 @@ func UpdateRole() *ProtectedHandler {
 		}
 	}
 
-	return &ProtectedHandler{
+	return &controller.ProtectedHandler{
 		PermissionName: "UPDATE_ROLES",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			// decode request body
@@ -101,7 +102,7 @@ func UpdateRole() *ProtectedHandler {
 
 			roleID, _ := strconv.Atoi(id)
 			role := model.Role{Name: rBody.Name}
-			if err := roleSvc.UpdateByID(roleID, &role); err != nil {
+			if err := controller.RoleSvc.UpdateByID(roleID, &role); err != nil {
 				util.RespondWithError(w, err.(util.ResponseError))
 				return
 			}

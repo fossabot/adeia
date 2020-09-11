@@ -4,11 +4,10 @@ import (
 	"time"
 
 	"github.com/pascaldekloe/jwt"
-	config "github.com/spf13/viper"
 )
 
 // NewJWT creates a jwt with the provided id and expiry.
-func NewJWT(payload map[string]interface{}, expires time.Duration) (string, error) {
+func NewJWT(secret string, payload map[string]interface{}, expires time.Duration) (string, error) {
 	var claims jwt.Claims
 
 	// set claims & payload
@@ -17,7 +16,7 @@ func NewJWT(payload map[string]interface{}, expires time.Duration) (string, erro
 	claims.Set = payload
 
 	// sign token
-	token, err := claims.HMACSign(jwt.HS256, []byte(config.GetString("server.jwt_secret")))
+	token, err := claims.HMACSign(jwt.HS256, []byte(secret))
 	if err != nil {
 		return "", err
 	}
@@ -26,9 +25,9 @@ func NewJWT(payload map[string]interface{}, expires time.Duration) (string, erro
 }
 
 // ParseJWT validates a jwt and returns the payload.
-func ParseJWT(token string) (payload map[string]interface{}, err error) {
+func ParseJWT(secret, token string) (payload map[string]interface{}, err error) {
 	// check if signature is valid
-	claims, err := jwt.HMACCheck([]byte(token), []byte(config.GetString("server.jwt_secret")))
+	claims, err := jwt.HMACCheck([]byte(token), []byte(secret))
 	if err != nil {
 		return nil, err
 	}
