@@ -3,7 +3,7 @@ package log
 import (
 	"testing"
 
-	"adeia-api/internal/config"
+	"adeia/internal/config"
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"

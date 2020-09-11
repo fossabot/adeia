@@ -1,8 +1,8 @@
 package role
 
 import (
-	"adeia-api/internal/model"
-	"adeia-api/internal/repo"
+	"adeia/internal/model"
+	"adeia/internal/repo"
 )
 
 const (

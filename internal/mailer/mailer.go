@@ -7,7 +7,7 @@ import (
 	"net/smtp"
 	"strconv"
 
-	"adeia-api/internal/config"
+	"adeia/internal/config"
 
 	"github.com/jordan-wright/email"
 )

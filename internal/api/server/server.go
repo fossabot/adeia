@@ -9,14 +9,14 @@ import (
 	"syscall"
 	"time"
 
-	"adeia-api/internal/api/middleware"
-	"adeia-api/internal/config"
-	holidayController "adeia-api/internal/controller/holiday"
-	roleController "adeia-api/internal/controller/role"
-	userController "adeia-api/internal/controller/user"
-	"adeia-api/internal/util/constants"
-	"adeia-api/internal/util/log"
-	"adeia-api/internal/util/ratelimiter"
+	"adeia/internal/api/middleware"
+	"adeia/internal/config"
+	holidayController "adeia/internal/controller/holiday"
+	roleController "adeia/internal/controller/role"
+	userController "adeia/internal/controller/user"
+	"adeia/internal/util/constants"
+	"adeia/internal/util/log"
+	"adeia/internal/util/ratelimiter"
 
 	"github.com/go-chi/chi"
 )

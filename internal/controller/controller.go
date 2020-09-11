@@ -1,17 +1,17 @@
 package controller
 
 import (
-	"adeia-api/internal/config"
-	"adeia-api/internal/repo"
-	holidayRepo "adeia-api/internal/repo/holiday"
-	roleRepo "adeia-api/internal/repo/role"
-	sessionRepo "adeia-api/internal/repo/session"
-	userRepo "adeia-api/internal/repo/user"
-	"adeia-api/internal/service"
-	holidayService "adeia-api/internal/service/holiday"
-	roleService "adeia-api/internal/service/role"
-	sessionService "adeia-api/internal/service/session"
-	userService "adeia-api/internal/service/user"
+	"adeia/internal/config"
+	"adeia/internal/repo"
+	holidayRepo "adeia/internal/repo/holiday"
+	roleRepo "adeia/internal/repo/role"
+	sessionRepo "adeia/internal/repo/session"
+	userRepo "adeia/internal/repo/user"
+	"adeia/internal/service"
+	holidayService "adeia/internal/service/holiday"
+	roleService "adeia/internal/service/role"
+	sessionService "adeia/internal/service/session"
+	userService "adeia/internal/service/user"
 )
 
 var (

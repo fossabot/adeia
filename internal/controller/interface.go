@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"adeia-api/internal/model"
-	"adeia-api/internal/util/constants"
+	"adeia/internal/model"
+	"adeia/internal/util/constants"
 )
 
 type UserService interface {

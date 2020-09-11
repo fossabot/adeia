@@ -1,4 +1,4 @@
-module adeia-api
+module adeia
 
 go 1.15
 

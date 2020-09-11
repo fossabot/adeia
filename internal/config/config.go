@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"adeia-api/internal/util/constants"
+	"adeia/internal/util/constants"
 
 	"github.com/spf13/viper"
 )

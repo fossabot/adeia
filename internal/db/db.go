@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"strconv"
 
-	"adeia-api/internal/config"
+	"adeia/internal/config"
 
 	"github.com/jmoiron/sqlx"
 )

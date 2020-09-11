@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	"adeia-api/internal/api"
-	"adeia-api/internal/config"
-	"adeia-api/internal/util/constants"
+	"adeia/internal/api"
+	"adeia/internal/config"
+	"adeia/internal/util/constants"
 
 	_ "github.com/jackc/pgx/v4/stdlib" // Postgres driver
 )

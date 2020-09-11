@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"adeia-api/internal/util/log"
-	"adeia-api/internal/util/ratelimiter"
+	"adeia/internal/util/log"
+	"adeia/internal/util/ratelimiter"
 )
 
 // RateLimiter is a middleware that wraps the internal/util/ratelimiter pkg.

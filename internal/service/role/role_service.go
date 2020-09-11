@@ -1,10 +1,10 @@
 package role
 
 import (
-	"adeia-api/internal/model"
-	"adeia-api/internal/service"
-	"adeia-api/internal/util"
-	"adeia-api/internal/util/log"
+	"adeia/internal/model"
+	"adeia/internal/service"
+	"adeia/internal/util"
+	"adeia/internal/util/log"
 )
 
 type Service struct {

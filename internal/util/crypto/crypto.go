@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 
-	"adeia-api/internal/util/constants"
+	"adeia/internal/util/constants"
 
 	"github.com/alexedwards/argon2id"
 	"github.com/dchest/uniuri"

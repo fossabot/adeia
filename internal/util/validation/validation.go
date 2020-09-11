@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"adeia-api/internal/util"
-	"adeia-api/internal/util/crypto"
+	"adeia/internal/util"
+	"adeia/internal/util/crypto"
 
 	"github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"

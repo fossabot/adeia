@@ -3,7 +3,7 @@ package service
 import (
 	"time"
 
-	"adeia-api/internal/model"
+	"adeia/internal/model"
 
 	"github.com/jordan-wright/email"
 )

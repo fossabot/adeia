@@ -3,12 +3,12 @@ package user
 import (
 	"net/http"
 
-	"adeia-api/internal/api/middleware"
-	"adeia-api/internal/controller"
-	"adeia-api/internal/model"
-	"adeia-api/internal/util"
-	"adeia-api/internal/util/constants"
-	"adeia-api/internal/util/validation"
+	"adeia/internal/api/middleware"
+	"adeia/internal/controller"
+	"adeia/internal/model"
+	"adeia/internal/util"
+	"adeia/internal/util/constants"
+	"adeia/internal/util/validation"
 
 	"github.com/go-chi/chi"
 )

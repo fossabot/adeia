@@ -3,15 +3,15 @@ package api
 import (
 	"fmt"
 
-	"adeia-api/internal/api/server"
-	"adeia-api/internal/cache"
-	"adeia-api/internal/config"
-	"adeia-api/internal/controller"
-	"adeia-api/internal/db"
-	"adeia-api/internal/mailer"
-	"adeia-api/internal/repo"
-	"adeia-api/internal/service"
-	"adeia-api/internal/util/log"
+	"adeia/internal/api/server"
+	"adeia/internal/cache"
+	"adeia/internal/config"
+	"adeia/internal/controller"
+	"adeia/internal/db"
+	"adeia/internal/mailer"
+	"adeia/internal/repo"
+	"adeia/internal/service"
+	"adeia/internal/util/log"
 )
 
 var (

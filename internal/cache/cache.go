@@ -3,7 +3,7 @@ package cache
 import (
 	"strconv"
 
-	"adeia-api/internal/config"
+	"adeia/internal/config"
 
 	"github.com/mediocregopher/radix/v3"
 )

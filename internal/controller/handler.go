@@ -3,8 +3,8 @@ package controller
 import (
 	"net/http"
 
-	"adeia-api/internal/util"
-	"adeia-api/internal/util/log"
+	"adeia/internal/util"
+	"adeia/internal/util/log"
 )
 
 // ProtectedHandler checks if user is authorized before allowing the request to

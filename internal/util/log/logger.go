@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"adeia-api/internal/config"
+	"adeia/internal/config"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

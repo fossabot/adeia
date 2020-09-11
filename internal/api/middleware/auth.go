@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strings"
 
-	"adeia-api/internal/controller"
-	"adeia-api/internal/util"
-	"adeia-api/internal/util/constants"
-	"adeia-api/internal/util/log"
+	"adeia/internal/controller"
+	"adeia/internal/util"
+	"adeia/internal/util/constants"
+	"adeia/internal/util/log"
 )
 
 // AllowAuthenticated is a middleware that allows only authenticated users.

@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"adeia-api/internal/util/constants"
-	"adeia-api/internal/util/log"
+	"adeia/internal/util/constants"
+	"adeia/internal/util/log"
 
 	"github.com/golang/gddo/httputil/header"
 )
